@@ -346,10 +346,38 @@ html.intro-ativa .brand img { visibility: hidden; }
   background: radial-gradient(70% 60% at 50% 45%, #17140d, var(--bg) 70%);
   transition: opacity .85s ease;
 }
-.intro-palco { position: relative; width: min(920px, 92vw); }
-.intro-svg { display: block; width: 100%; height: auto; overflow: visible; transition: transform .9s cubic-bezier(.7, 0, .2, 1); }
-.intro-logo { opacity: 0; transform-box: fill-box; transform-origin: center; }
-.intro-maos { position: absolute; pointer-events: none; opacity: 0; }
+/* o logo é imagem pronta; tudo que se mexe usa só transform e opacidade */
+.intro-palco { position: relative; width: min(640px, 84vw); }
+.intro-logo { position: relative; opacity: 0; transform-origin: 50% 50%; will-change: transform, opacity; }
+.intro-topo { position: relative; }
+.intro-logo img { display: block; width: 100%; height: auto; }
+/* as frases começam 5 unidades acima do fim do recorte de cima (o recorte tem 592 de largura) */
+.intro-frases { margin-top: calc(-5 / 592 * 100%); transition: opacity .4s; }
+.intro-reflexo {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  -webkit-mask: url(../img/logo-topo-1600.webp) center / 100% 100% no-repeat;
+  mask: url(../img/logo-topo-1600.webp) center / 100% 100% no-repeat;
+}
+.intro-reflexo i {
+  position: absolute; top: -10%; bottom: -10%; left: -26%; width: 18%; opacity: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent);
+  will-change: transform;
+}
+/* ponta de cima da estrela: x 51% e y 3% do recorte de cima */
+.intro-cintilar {
+  position: absolute; left: 51%; top: 3%; width: 7%; aspect-ratio: 1; opacity: 0;
+  background: #fff6d6; filter: drop-shadow(0 0 6px #f6e08f);
+  clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%);
+}
+.intro-brilho {
+  position: absolute; left: -15%; right: -15%; top: -20%; bottom: -20%; opacity: 0; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(212,169,58,.28), rgba(212,169,58,.08) 60%, transparent);
+}
+.intro-maos, .intro-faisca { position: absolute; left: 50%; top: 50%; pointer-events: none; opacity: 0; }
+.intro-maos { width: 42%; aspect-ratio: 1; will-change: transform, opacity; }
+.intro-faisca { width: 26%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, #fff6d6, rgba(246,224,143,.6) 30%, transparent); }
+.intro-particula { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px; border-radius: 50%; background: #f6e08f; opacity: 0; }
+#intro.is-saindo .intro-frases, #intro.is-saindo .intro-brilho { opacity: 0 !important; }
 .intro-pular {
   position: absolute; right: 20px; bottom: 20px; padding: 9px 18px; border-radius: 999px;
   border: 1px solid var(--line); background: rgba(255,255,255,.04); color: var(--muted);

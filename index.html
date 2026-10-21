@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="preload" as="image" href="img/logo-topo-1600.webp" type="image/webp">
+  <link rel="preload" as="image" href="img/logo-frases-1600.webp" type="image/webp">
   <script>document.documentElement.classList.add('intro-ativa');</script>
 </head>
 <body>
@@ -17,7 +19,7 @@
 <div id="intro"><div class="intro-fundo"></div></div>
 
 <header class="topbar">
-  <a href="#simulador" class="brand"><img src="img/logo-grupostar-topo.svg" alt="Grupo Star"></a>
+  <a href="#simulador" class="brand"><img src="img/logo-topo-280.png" alt="Grupo Star"></a>
   <nav class="nav">
     <a href="#simulador">Simulador</a>
     <a href="#mapa">Mapa do patrimônio</a>
@@ -216,7 +218,7 @@
 
   <section class="cta">
     <div class="cta-media">
-      <video id="ctaVideo" src="video/consultor.mp4" poster="img/atendimento-consultor.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Consultor Gold Star em atendimento"></video>
+      <video id="ctaVideo" data-src="video/consultor.mp4" poster="img/atendimento-consultor.jpg" muted loop playsinline preload="none" aria-label="Consultor Gold Star em atendimento"></video>
       <button class="cta-som" id="ctaSom" type="button" aria-label="Ativar som">Ativar som</button>
     </div>
     <div>
@@ -228,7 +230,7 @@
 </main>
 
 <footer class="footer">
-  <img src="img/logo-grupostar.svg" alt="Grupo Star · Patrimônio, Investimentos e Negócios">
+  <img src="img/logo-completo-640.png" alt="Grupo Star · Patrimônio, Investimentos e Negócios">
   <p>WhatsApp <span data-zap>(64) 9323-2861</span> · <a href="https://www.instagram.com/goldstarconsultoria/" target="_blank" rel="noopener">@goldstarconsultoria</a></p>
   <p class="muted">Demonstração de site · valores ilustrativos · desenvolvido por <a href="https://rainierdev.github.io/fixa/" target="_blank" rel="noopener">FIXA</a> · <a href="admin.html">Área do dono</a></p>
 </footer>

@@ -436,6 +436,13 @@ function iniciarSite(C) {
 
   /* ---------- vídeo do consultor: começa mudo (exigência dos navegadores), o visitante liga o som ---------- */
   const ctaVideo = $('ctaVideo');
+  // o vídeo só baixa quando o visitante chega perto dele, para não pesar na abertura do site
+  new IntersectionObserver((es, obs) => {
+    if (!es[0].isIntersecting) return;
+    ctaVideo.src = ctaVideo.dataset.src;
+    ctaVideo.play().catch(() => {});
+    obs.disconnect();
+  }, { rootMargin: '300px' }).observe(ctaVideo);
   $('ctaSom').addEventListener('click', () => {
     ctaVideo.muted = !ctaVideo.muted;
     if (!ctaVideo.muted) { ctaVideo.currentTime = 0; ctaVideo.play(); }
