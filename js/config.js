@@ -1,0 +1,62 @@
+/* =========================================================
+   GRUPO STAR — CONFIGURAÇÃO
+   ---------------------------------------------------------
+   MODO DEMONSTRAÇÃO (firebase: null):
+     o que o dono salva no painel fica só no navegador
+     daquele aparelho. Serve para testar o site e o painel.
+
+   MODO ONLINE (para uso real):
+     cole abaixo o objeto de configuração do projeto Firebase
+     (passo a passo no LEIAME.md). Assim o que o dono salva
+     no painel aparece para todos os visitantes.
+   ========================================================= */
+window.GS_CONFIG = {
+  firebase: null
+  /* Exemplo:
+  firebase: {
+    apiKey: "AIza...",
+    authDomain: "grupo-star.firebaseapp.com",
+    projectId: "grupo-star",
+    storageBucket: "grupo-star.appspot.com",
+    messagingSenderId: "000000000",
+    appId: "1:000000000:web:abc123"
+  }
+  */
+};
+
+/* Valores iniciais. Depois que o dono salva no painel, o que vale é o painel.
+   Taxas em porcentagem: adm e fundo de reserva sobre o valor da carta (total do plano);
+   juros do financiamento ao mês. */
+window.GS_PADRAO = {
+  contato: {
+    whatsapp: '556493232861',            // DDI + DDD + número, só dígitos
+    instagram: 'goldstarconsultoria'
+  },
+  topo: {
+    titulo: 'Conquiste o seu próximo bem',
+    destaque: 'sem pagar juros',
+    subtitulo: 'Carro, casa, caminhonete ou trator: a Gold Star planeja o caminho com você, do primeiro boleto à chave na mão.'
+  },
+  bens: {
+    auto:    { nome: 'Automóvel',      min: 30000,  max: 300000,  passo: 5000,  valor: 90000,  prazoMin: 24, prazoMax: 100, prazo: 72,  adm: 15, fundo: 2, juros: 1.89 },
+    imovel:  { nome: 'Imóvel',         min: 100000, max: 1500000, passo: 10000, valor: 350000, prazoMin: 60, prazoMax: 220, prazo: 180, adm: 18, fundo: 2, juros: 0.99 },
+    pesados: { nome: 'Pesados e agro', min: 80000,  max: 1000000, passo: 10000, valor: 300000, prazoMin: 36, prazoMax: 120, prazo: 100, adm: 14, fundo: 2, juros: 1.60 }
+  },
+  aviso: 'Valores estimados para demonstração, com taxas médias de mercado. A contemplação ocorre por sorteio ou lance e não tem data garantida. Condições finais dependem da administradora.',
+  provas: [
+    { titulo: '1º lugar', texto: 'Troféu Fama 2025 · Montividiu-GO' },
+    { titulo: 'R$ 42.120', texto: 'em crédito para o automóvel de um cliente' },
+    { titulo: 'Planejar · Proteger · Multiplicar', texto: 'atendimento do primeiro boleto à chave na mão' }
+  ],
+  // valor sugerido de cada objetivo quando o visitante o coloca no mapa do patrimônio
+  objetivos: { casa: 350000, terreno: 150000, reforma: 80000, carro: 90000, caminhonete: 250000, moto: 30000, trator: 400000 },
+  avaliacoes: [
+    { nome: 'Cliente de Montividiu', bem: 'Automóvel', texto: 'Atendimento atencioso do começo ao fim. Me explicaram o lance com calma e fui contemplado antes do que imaginava.', exemplo: true },
+    { nome: 'Cliente de Rio Verde', bem: 'Imóvel', texto: 'Eu achava que consórcio era só sorte. Com o planejamento deles entendi o caminho e hoje estou na casa própria.', exemplo: true },
+    { nome: 'Produtor rural', bem: 'Pesados e agro', texto: 'Comprei minha máquina sem pagar juros de banco. A parcela coube no planejamento da safra.', exemplo: true },
+    { nome: 'Cliente de Jataí', bem: 'Automóvel', texto: 'Sempre que tive dúvida me responderam rápido no WhatsApp. Recomendo para quem quer comprar com segurança.', exemplo: true },
+    { nome: 'Cliente de Montividiu', bem: 'Imóvel', texto: 'Fizeram as contas comigo lado a lado com o financiamento. A diferença foi tão grande que nem pensei duas vezes.', exemplo: true },
+    { nome: 'Cliente de Rio Verde', bem: 'Caminhonete', texto: 'Equipe séria e premiada. Acompanharam cada assembleia e me avisaram na hora da contemplação.', exemplo: true }
+  ],
+  pin: '1234'                            // senha do painel no modo demonstração
+};

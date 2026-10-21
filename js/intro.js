@@ -24,15 +24,16 @@
   }
 
   function iniciar() {
-    const NS = 'http://www.w3.org/2000/svg';
-    const CENTRO = { x: 297, y: 386 }; // centro do logo; as mãos e a faísca ficam aqui
+    const CENTRO = { x: 300, y: 410 }; // centro do logo; as mãos e a faísca ficam aqui
+    // recorte do logo do topo (img/logo-grupostar-topo.svg): o logo sem as duas linhas de frases
+    const TOPO = { x: 2, y: 183, w: 592 };
 
     const particulas = Array.from({ length: 14 }, (_, i) =>
       `<circle class="intro-particula" cx="${CENTRO.x}" cy="${CENTRO.y}" r="${1.4 + (i % 3) * .7}" fill="#f6e08f"/>`).join('');
 
     raiz.insertAdjacentHTML('beforeend', `${D.style}
       <div class="intro-palco">
-        <svg class="intro-svg" viewBox="20 270 555 232" aria-label="Gold Star Consultoria e Investimento">
+        <svg class="intro-svg" viewBox="0 176 600 470" aria-label="Grupo Star · Patrimônio, Investimentos e Negócios">
           ${D.defs}
           <defs>
             <radialGradient id="introFaisca">
@@ -45,16 +46,16 @@
               <stop offset=".5" stop-color="#fff" stop-opacity=".85"/>
               <stop offset="1" stop-color="#fff" stop-opacity="0"/>
             </linearGradient>
-            <mask id="introMascara" mask-type="alpha" maskUnits="userSpaceOnUse" x="0" y="250" width="620" height="280">
+            <mask id="introMascara" mask-type="alpha" maskUnits="userSpaceOnUse" x="0" y="170" width="620" height="480">
               <use href="#introLogoBase"/>
             </mask>
           </defs>
           <circle class="intro-faisca" cx="${CENTRO.x}" cy="${CENTRO.y}" r="0" fill="url(#introFaisca)"/>
           ${particulas}
           <g class="intro-logo">
-            <g id="introLogoBase">${D.art}</g>
+            <g id="introLogoBase" filter="url(#relevo)">${D.art}</g>
             <g mask="url(#introMascara)">
-              <rect class="intro-reflexo" x="-90" y="280" width="70" height="220" fill="url(#introReflexo)"/>
+              <rect class="intro-reflexo" x="-140" y="176" width="90" height="470" fill="url(#introReflexo)"/>
             </g>
             <path class="intro-cintilar" d="M0 -14 L3 -3 L14 0 L3 3 L0 14 L-3 3 L-14 0 L-3 -3 Z" fill="#fff6d6"/>
           </g>
@@ -73,15 +74,15 @@
     const reflexo = raiz.querySelector('.intro-reflexo');
     const cintilar = raiz.querySelector('.intro-cintilar');
 
-    // a estrela (partes douradas fora do risco) ganha o brilho próprio
-    const gEstrela = document.createElementNS(NS, 'g');
+    // estrela e arco: as peças douradas (classe st1) do alto do logo; as frases de baixo somem na saída
+    const estrela = [], frases = [];
     [...base.querySelectorAll('path')].forEach(p => {
       const b = p.getBBox();
-      if (getComputedStyle(p).fill.startsWith('url') && !(b.x < 445 && b.height < 20)) gEstrela.appendChild(p);
+      if (p.classList.contains('st1') && b.y < 400) estrela.push(p);
+      if (b.y >= 565) frases.push(p);
     });
-    base.appendChild(gEstrela);
-    const be = gEstrela.getBBox();
-    const PONTA = { x: be.x + be.width * .3, y: be.y + 4 }; // ponta de cima da estrela
+    const brilhoEstrela = v => estrela.forEach(p => { p.style.filter = v; });
+    const PONTA = { x: 304, y: 194 }; // ponta de cima da estrela
 
     // direção e distância de cada partícula, fixas para a animação ser sempre igual
     const rumo = pontos.map((_, i) => {
@@ -94,7 +95,7 @@
     const anim = window.lottie && M
       ? window.lottie.loadAnimation({ container: maos, renderer: 'svg', loop: false, autoplay: false, animationData: M })
       : null;
-    const MAOS = { tam: 210 };
+    const MAOS = { tam: 240 };
     function posicionarMaos() {
       const r = svg.getBoundingClientRect(), s = palco.getBoundingClientRect(), vb = svg.viewBox.baseVal;
       const k = r.width / vb.width;
@@ -138,12 +139,12 @@
 
       // reflexo metálico da esquerda para a direita
       const ref = easeInOut(seg(t, 1400, 2000));
-      reflexo.setAttribute('transform', `translate(${ref * 700} 0) skewX(-20)`);
+      reflexo.setAttribute('transform', `translate(${ref * 860} 0) skewX(-20)`);
       reflexo.style.opacity = ref > 0 && ref < 1 ? 1 : 0;
 
       // estrela cintila: brilho em volta e um pontinho de luz na ponta
       const c = seg(t, 1550, 2000);
-      gEstrela.style.filter = `drop-shadow(0 0 ${sino(c) * 12}px rgba(246,224,143,.9))`;
+      brilhoEstrela(`drop-shadow(0 0 ${sino(c) * 12}px rgba(246,224,143,.9))`);
       const sc = sino(c);
       cintilar.setAttribute('transform', `translate(${PONTA.x} ${PONTA.y}) rotate(${c * 90}) scale(${sc})`);
       cintilar.style.opacity = sc;
@@ -156,7 +157,9 @@
       saindo = true;
       cancelAnimationFrame(raf);
       quadro(FIM);
-      gEstrela.style.filter = '';
+      brilhoEstrela('');
+      // as frases não existem no logo do topo: somem enquanto o logo encolhe
+      frases.forEach(p => { p.style.transition = 'opacity .45s'; p.style.opacity = 0; });
       logo.style.filter = '';
       logo.style.transform = '';
 
@@ -164,9 +167,9 @@
       raiz.classList.add('is-saindo');
       if (!alvo) { setTimeout(encerrar, 900); return; }
 
-      // caixa do logo no SVG da abertura (mesmo recorte do logo-dourado.svg do topo)
+      // caixa do logo no SVG da abertura, no mesmo recorte do logo do topo
       const ctm = svg.getScreenCTM();
-      const de = { x: 28 * ctm.a + ctm.e, y: 298 * ctm.d + ctm.f, w: 538 * ctm.a };
+      const de = { x: TOPO.x * ctm.a + ctm.e, y: TOPO.y * ctm.d + ctm.f, w: TOPO.w * ctm.a };
       const caixa = svg.getBoundingClientRect();
       const para = alvo.getBoundingClientRect();
       const k = para.width / de.w;

@@ -73,7 +73,7 @@ section { padding: 96px 20px; }
   background: rgba(10,10,11,.78); backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(255,255,255,.05);
 }
-.brand img { height: 40px; width: auto; }
+.brand img { height: 46px; width: auto; }
 .nav { display: flex; gap: 26px; margin-left: auto; }
 .nav a { text-decoration: none; color: var(--muted); font-weight: 600; font-size: .92rem; }
 .nav a:hover { color: var(--gold-hi); }
@@ -313,7 +313,7 @@ input[type=range]::-moz-range-thumb {
 .cta p { color: var(--muted); margin: 14px 0 26px; max-width: 460px; }
 
 .footer { text-align: center; padding: 40px 20px 60px; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
-.footer img { height: 46px; width: auto; margin: 0 auto 14px; }
+.footer img { height: 120px; width: auto; margin: 0 auto 14px; }
 .footer p { margin: 4px 0; }
 .footer .muted { font-size: .78rem; opacity: .7; }
 

@@ -1,0 +1,16 @@
+rules_version = '2';
+// Regras de segurança do Firestore para o site do Grupo Star.
+// TROQUE o e-mail abaixo pelo e-mail do dono cadastrado em Authentication.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'EMAIL_DO_DONO@gmail.com';
+    }
+
+    // Taxas, textos, avaliações e contato: todos os visitantes leem, só o dono altera.
+    match /config/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
