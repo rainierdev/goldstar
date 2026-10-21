@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gold Star | Prévia da abertura</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #0a0a0b; --gold: #d4a93a; --gold-hi: #f6e08f; --muted: #9b968c; --line: #29292e; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background: radial-gradient(70% 60% at 50% 45%, #17140d, var(--bg) 70%);
+      color: #f3efe6; font-family: "Manrope", system-ui, sans-serif;
+      display: grid; grid-template-rows: 1fr auto; overflow: hidden;
+    }
+    .stage { position: relative; display: grid; place-items: center; padding: 16px; }
+    #maosLottie { position: absolute; pointer-events: none; opacity: 0; }
+    #intro { width: min(920px, 100%); height: auto; overflow: visible; }
+    .controls { display: flex; gap: 10px; justify-content: center; align-items: center; padding: 18px 16px 28px; flex-wrap: wrap; }
+    .controls button {
+      padding: 11px 22px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.04);
+      color: #f3efe6; font: 700 .9rem "Manrope", sans-serif; cursor: pointer;
+    }
+    .controls button:hover { border-color: var(--gold); }
+    .controls .gold { background: linear-gradient(120deg, #8a6414, #c9992e 35%, #f6e08f 60%, #d4a93a 78%, #8a6414); color: #1a1306; border: 0; }
+    .controls span { color: var(--muted); font-size: .85rem; }
+    #speed { accent-color: var(--gold); }
+  </style>
+  __LOGO_STYLE__
+</head>
+<body>
+  <div class="stage">
+    <svg id="intro" viewBox="20 285 555 250" xmlns="http://www.w3.org/2000/svg" aria-label="Animação do logo Gold Star">
+      __LOGO_DEFS__
+      <defs>
+        <clipPath id="trilha"><rect id="trilhaRect" x="190" y="330" width="0" height="60"/></clipPath>
+        <radialGradient id="brilho">
+          <stop offset="0" stop-color="#f6e08f" stop-opacity=".9"/>
+          <stop offset=".35" stop-color="#d4a93a" stop-opacity=".35"/>
+          <stop offset="1" stop-color="#d4a93a" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="halo" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- brilho que nasce do aperto de mão -->
+      <circle id="flash" cx="297" cy="470" r="0" fill="url(#brilho)"/>
+
+      <g id="logoArt">
+        __LOGO_ART__
+      </g>
+    </svg>
+    <!-- aperto de mão: "Handshake Loop" de Brian Karungani (LottieFiles, Lottie Simple License), recolorido em dourado -->
+    <div id="maosLottie" aria-hidden="true"></div>
+  </div>
+
+  <div class="controls">
+    <button class="gold" id="replay">Repetir animação</button>
+    <span>Velocidade</span>
+    <input type="range" id="speed" min="0.5" max="1.5" step="0.1" value="1" aria-label="Velocidade">
+    <span id="speedTxt">1,0×</span>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_svg.min.js"></script>
+<script>
+const MAOS_JSON = __MAOS_JSON__;
+</script>
+<script>
+// Linha do tempo da abertura, em milissegundos:
+// mãos entram e se apertam → brilho → estrela nasce → estrela vai para o início do nome
+// → percorre da esquerda para a direita deixando o risco e revelando GOLDSTAR → subtítulo
+const svg = document.getElementById('intro');
+const art = document.getElementById('logoArt');
+const NS = 'http://www.w3.org/2000/svg';
+
+// separa o logo: letras grandes, subtítulo, risco (traço) e estrela
+const letras = [], subtitulo = [], risco = [], estrela = [];
+[...art.querySelectorAll('path')].forEach(p => {
+  const b = p.getBBox();
+  const dourado = getComputedStyle(p).fill.startsWith('url');
+  if (!dourado) (b.y >= 434 ? subtitulo : letras).push({ el: p, x: b.x + b.width / 2 });
+  else if (b.x < 445 && b.height < 20) risco.push(p);
+  else estrela.push(p);
+});
+
+const gRisco = document.createElementNS(NS, 'g');
+gRisco.setAttribute('clip-path', 'url(#trilha)');
+risco.forEach(p => gRisco.appendChild(p));
+const gEstrela = document.createElementNS(NS, 'g');
+gEstrela.setAttribute('filter', 'url(#halo)');
+estrela.forEach(p => gEstrela.appendChild(p));
+art.prepend(gRisco);
+art.appendChild(gEstrela);
+
+const bb = gEstrela.getBBox();
+const cx = bb.x + bb.width / 2, cy = bb.y + bb.height / 2;
+
+const clamp = v => Math.max(0, Math.min(1, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, k) => a + (b - a) * k;
+const easeOut = k => 1 - Math.pow(1 - k, 3);
+const easeInOut = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const easeBack = k => 1 + 2.2 * Math.pow(k - 1, 3) + 1.2 * Math.pow(k - 1, 2);
+
+// mãos em Lottie, posicionadas por cima do SVG nas coordenadas do logo
+const stage = document.querySelector('.stage');
+const maos = document.getElementById('maosLottie');
+const MAOS = { x: 297, y: 462, tam: 200 };
+const anim = lottie.loadAnimation({ container: maos, renderer: 'svg', loop: false, autoplay: false, animationData: MAOS_JSON });
+const quadrosMaos = MAOS_JSON.op - MAOS_JSON.ip;
+function posicionarMaos() {
+  const r = svg.getBoundingClientRect(), s = stage.getBoundingClientRect(), vb = svg.viewBox.baseVal;
+  const k = r.width / vb.width;
+  maos.style.width = maos.style.height = MAOS.tam * k + 'px';
+  maos.style.left = (r.left - s.left + (MAOS.x - vb.x - MAOS.tam / 2) * k) + 'px';
+  maos.style.top = (r.top - s.top + (MAOS.y - vb.y - MAOS.tam / 2) * k) + 'px';
+}
+posicionarMaos();
+window.addEventListener('resize', posicionarMaos);
+const flash = document.getElementById('flash');
+const trilha = document.getElementById('trilhaRect');
+
+const INICIO = { x: 42, y: 364 };   // onde a estrela começa a escrever (em cima do G)
+const NASCE = { x: 297, y: 358 };   // onde ela aparece, em cima das mãos
+const FIM = 6200;
+
+function estrelaEm(x, y, s, rot, alpha) {
+  gEstrela.setAttribute('transform', `translate(${x} ${y}) rotate(${rot}) scale(${s}) translate(${-cx} ${-cy})`);
+  gEstrela.style.opacity = alpha;
+}
+
+function quadro(t) {
+  // 1–2. aperto de mão: a animação Lottie segue o relógio da abertura (60 quadros por segundo)
+  if (t < 3100) anim.goToAndStop((t / 1000 * MAOS_JSON.fr) % quadrosMaos, true);
+  const somem = seg(t, 2500, 3100);
+  maos.style.opacity = Math.min(seg(t, 0, 450), 1 - somem);
+  maos.style.transform = `translateY(${somem * 16}px) scale(${lerp(.92, 1, easeOut(seg(t, 0, 700)))})`;
+
+  // 3. brilho no aperto
+  const f = seg(t, 1650, 2500);
+  flash.setAttribute('r', easeOut(f) * 70);
+  flash.style.opacity = f < .4 ? f / .4 : 1 - (f - .4) / .6;
+
+  // 4. estrela nasce em cima das mãos, vai até o G e percorre o nome
+  if (t < 1800) {
+    estrelaEm(NASCE.x, NASCE.y, 0, 0, 0);
+  } else if (t < 2550) {
+    const a = seg(t, 1800, 2550);
+    estrelaEm(NASCE.x, NASCE.y - 10 * easeOut(a), .6 * easeBack(a), lerp(-200, 0, easeOut(a)), clamp(a * 3));
+  } else if (t < 3150) {
+    const a = easeInOut(seg(t, 2550, 3150));
+    estrelaEm(lerp(NASCE.x, INICIO.x, a), lerp(NASCE.y - 10, INICIO.y, a) - Math.sin(a * Math.PI) * 30, lerp(.6, .34, a), 0, 1);
+  } else {
+    const a = easeInOut(seg(t, 3150, 4950));
+    estrelaEm(lerp(INICIO.x, cx, a), lerp(INICIO.y, cy, a * a), lerp(.34, 1, a), 360 * a, 1);
+  }
+
+  // 5. o risco e as letras aparecem atrás da estrela
+  const varrida = easeInOut(seg(t, 3150, 4950));
+  const xEstrela = lerp(INICIO.x, cx, varrida);
+  trilha.setAttribute('width', Math.max(0, xEstrela - 190 - 12));
+  letras.forEach(l => {
+    const o = t < 3150 ? 0 : clamp((xEstrela - l.x + 10) / 40);
+    l.el.style.opacity = o;
+    l.el.setAttribute('transform', `translate(0 ${(1 - o) * 10})`);
+  });
+
+  // 6. subtítulo e um último brilho na estrela
+  const sub = easeOut(seg(t, 4900, 5600));
+  subtitulo.forEach(s => { s.el.style.opacity = sub; s.el.setAttribute('transform', `translate(0 ${(1 - sub) * 6})`); });
+  const pulso = seg(t, 4950, 5900);
+  gEstrela.style.filter = `drop-shadow(0 0 ${Math.sin(pulso * Math.PI) * 14}px rgba(246,224,143,.8))`;
+}
+
+let t0 = 0, velocidade = 1, raf = 0;
+function tocar() {
+  cancelAnimationFrame(raf);
+  t0 = performance.now();
+  const passo = agora => {
+    const t = (agora - t0) * velocidade;
+    quadro(Math.min(t, FIM));
+    if (t < FIM) raf = requestAnimationFrame(passo);
+  };
+  raf = requestAnimationFrame(passo);
+}
+
+document.getElementById('replay').addEventListener('click', tocar);
+document.getElementById('speed').addEventListener('input', e => {
+  velocidade = +e.target.value;
+  document.getElementById('speedTxt').textContent = velocidade.toFixed(1).replace('.', ',') + '×';
+});
+quadro(0);
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(() => setTimeout(tocar, 300));
+</script>
+</body>
+</html>
