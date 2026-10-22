@@ -157,7 +157,20 @@
         </div>
         <div class="previa" data-previa="${k}"></div>
       </div>`;
-    }).join('');
+    }).join('') + cartaoVenda();
+
+    el.querySelectorAll('[data-venda]').forEach(inp => inp.addEventListener('input', () => {
+      const [grupo, campo] = inp.dataset.venda.split('.');
+      if (campo) C.venda[grupo][campo] = +inp.value; else C.venda[grupo] = +inp.value;
+      atualizarVenda();
+      marcar();
+    }));
+    $('selRetornoMes').addEventListener('change', e => {
+      C.venda.retornoMes = e.target.value;
+      atualizarVenda();
+      marcar();
+    });
+    atualizarVenda();
 
     el.querySelectorAll('input[data-bem]').forEach(inp => {
       inp.addEventListener('input', () => {
@@ -176,6 +189,51 @@
       marcar();
     }));
     Object.keys(C.bens).forEach(atualizarBem);
+  }
+
+  /* ---------- compra de cotas contempladas (seção "Venda da cota") ---------- */
+  function cartaoVenda() {
+    const v = C.venda, ex = v.exemplo;
+    const num = (chave, rotulo, valor) => `<label class="campo"><span>${rotulo}</span><input type="number" min="0" step="any" data-venda="${chave}" value="${esc(valor)}"></label>`;
+    return `<div class="cartao">
+      <h2>Compra de cotas contempladas</h2>
+      <p class="sub">Regra da seção "Venda da cota": no sorteio, a Gold Star paga o percentual sobre o crédito cheio; no lance embutido, tira o embutido do crédito e paga o percentual sobre o que sobra.</p>
+      <div class="campos">
+        ${num('percentual', 'Percentual pago sobre o crédito (%)', v.percentual)}
+        ${num('embutido', 'Lance embutido padrão (% do crédito)', v.embutido)}
+        <label class="campo"><span>Como calcular o retorno ao mês</span>
+          <select id="selRetornoMes">
+            <option value="composto"${v.retornoMes === 'composto' ? ' selected' : ''}>Composto: taxa equivalente ao mês</option>
+            <option value="simples"${v.retornoMes === 'simples' ? ' selected' : ''}>Simples: retorno total ÷ meses</option>
+            <option value="oculto"${v.retornoMes === 'oculto' ? ' selected' : ''}>Não mostrar (só o retorno total)</option>
+          </select>
+        </label>
+      </div>
+      <p class="sub" style="margin:18px 0 10px">Exemplo que aparece preenchido quando o visitante abre a seção:</p>
+      <div class="campos">
+        ${num('exemplo.credito', 'Crédito contemplado (R$)', ex.credito)}
+        ${num('exemplo.parcelas', 'Parcelas pagas', ex.parcelas)}
+        ${num('exemplo.parcela', 'Valor médio da parcela (R$)', ex.parcela)}
+      </div>
+      <div class="previa" data-previa-venda></div>
+    </div>`;
+  }
+
+  function atualizarVenda() {
+    const v = C.venda, ex = v.exemplo;
+    const recebeSorteio = ex.credito * v.percentual / 100;
+    const recebeEmbutido = ex.credito * (1 - v.embutido / 100) * v.percentual / 100;
+    const investido = ex.parcelas * ex.parcela;
+    const roi = investido > 0 ? (recebeSorteio - investido) / investido : 0;
+    const mes = !(investido > 0 && ex.parcelas > 0) ? 0
+      : v.retornoMes === 'simples' ? roi / ex.parcelas
+      : Math.pow(recebeSorteio / investido, 1 / ex.parcelas) - 1;
+    $('painelBens').querySelector('[data-previa-venda]').innerHTML = `
+      <div><span>Total investido no exemplo</span><strong>${brl(investido)}</strong></div>
+      <div class="ouro"><span>Paga no sorteio</span><strong>${brl(recebeSorteio)}</strong></div>
+      <div><span>Paga no lance embutido</span><strong>${brl(recebeEmbutido)}</strong></div>
+      <div class="ouro"><span>ROI no sorteio</span><strong>${pct(roi * 100)}%</strong></div>
+      <div><span>Retorno ao mês no sorteio</span><strong>${v.retornoMes === 'oculto' ? 'não aparece' : pct(mes * 100) + '%'}</strong></div>`;
   }
 
   function atualizarBem(k) {

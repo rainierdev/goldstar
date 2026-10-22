@@ -22,6 +22,7 @@
   <a href="#simulador" class="brand"><img src="img/logo-topo-280.png" alt="Grupo Star"></a>
   <nav class="nav">
     <a href="#simulador">Simulador</a>
+    <a href="#vender">Vender cota</a>
     <a href="#mapa">Mapa do patrimônio</a>
     <a href="#entregas">Entregas</a>
     <a href="#avaliacoes">Avaliações</a>
@@ -129,6 +130,59 @@
       </div>
     </div>
     <p class="disclaimer" id="avisoSim">Valores estimados para demonstração, com taxas médias de mercado. A contemplação ocorre por sorteio ou lance e não tem data garantida. Condições finais dependem da administradora.</p>
+  </section>
+
+  <!-- VENDA DA COTA: a Gold Star compra cotas contempladas -->
+  <section id="vender" class="sim venda">
+    <div class="sim-head">
+      <p class="eyebrow">Venda da cota contemplada</p>
+      <h2>Foi contemplado? <span class="gold">A gente compra sua cota</span></h2>
+      <p class="lead">Informe o crédito e o que você já pagou: veja na hora quanto recebe e o retorno sobre o que investiu.</p>
+    </div>
+
+    <div class="sim-panel">
+      <div class="sim-controls">
+        <div class="tabs" role="tablist" id="tabsContemplacao">
+          <span class="tab-pill" id="pillContemplacao" aria-hidden="true"></span>
+          <button class="tab is-on" data-forma="sorteio" role="tab" type="button">Sorteio</button>
+          <button class="tab" data-forma="embutido" role="tab" type="button">Lance embutido</button>
+        </div>
+        <label class="field">
+          <span class="field-top"><span>Crédito contemplado (valor cheio)</span></span>
+          <input class="num" type="number" id="vCredito" min="0" step="1000" inputmode="decimal">
+        </label>
+        <label class="field" id="campoEmbutido" hidden>
+          <span class="field-top"><span>Lance embutido (% do crédito)</span></span>
+          <input class="num" type="number" id="vEmbutido" min="0" max="100" step="1" inputmode="decimal">
+        </label>
+        <div class="field-par">
+          <label class="field">
+            <span class="field-top"><span>Parcelas já pagas</span></span>
+            <input class="num" type="number" id="vParcelas" min="1" step="1" inputmode="numeric">
+          </label>
+          <label class="field">
+            <span class="field-top"><span>Valor médio da parcela</span></span>
+            <input class="num" type="number" id="vParcela" min="0" step="0.01" inputmode="decimal">
+          </label>
+        </div>
+        <p class="venda-regra" id="vRegra"></p>
+      </div>
+
+      <div class="sim-chart">
+        <div class="saving">
+          <span>Você recebe pela cota</span>
+          <strong id="vRecebe">R$ 0</strong>
+        </div>
+        <div class="compare venda-num">
+          <div class="cmp"><span class="cmp-label">Total que você investiu</span><strong class="cmp-value" id="vInvestido">R$ 0</strong></div>
+          <div class="cmp cmp-gold"><span class="cmp-label">Lucro líquido</span><strong class="cmp-value" id="vLucro">R$ 0</strong></div>
+          <div class="cmp cmp-gold"><span class="cmp-label">Retorno total (ROI)</span><strong class="cmp-value" id="vRoi">0%</strong></div>
+          <div class="cmp"><span class="cmp-label">Retorno ao mês</span><strong class="cmp-value" id="vMes">0%</strong><span class="cmp-sub" id="vAno"></span></div>
+        </div>
+        <button class="btn btn-gold btn-block" id="btnVender" type="button">Quero vender minha cota</button>
+      </div>
+    </div>
+    <p class="disclaimer">Proposta estimada. A compra depende da análise da cota e da anuência da administradora para a transferência. <span id="vNotaRetorno"></span>Valores não constituem promessa de rentabilidade.</p>
   </section>
 
   <!-- prova social com fatos reais do Instagram -->

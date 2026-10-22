@@ -42,6 +42,14 @@ window.GS_PADRAO = {
     imovel:  { nome: 'Imóvel',         min: 100000, max: 1500000, passo: 10000, valor: 350000, prazoMin: 60, prazoMax: 220, prazo: 180, adm: 18, fundo: 2, juros: 0.99 },
     pesados: { nome: 'Pesados e agro', min: 80000,  max: 1000000, passo: 10000, valor: 300000, prazoMin: 36, prazoMax: 120, prazo: 100, adm: 14, fundo: 2, juros: 1.60 }
   },
+  // compra de cotas contempladas: a Gold Star paga um % do crédito (cheio no sorteio,
+  // descontado o lance embutido quando for o caso)
+  venda: {
+    percentual: 20,                      // % pago sobre o crédito que sobra
+    embutido: 30,                        // % do crédito usado no lance embutido
+    retornoMes: 'composto',              // 'composto', 'simples' (ROI ÷ meses) ou 'oculto'
+    exemplo: { credito: 420000, parcelas: 13, parcela: 1122.48 }
+  },
   aviso: 'Valores estimados para demonstração, com taxas médias de mercado. A contemplação ocorre por sorteio ou lance e não tem data garantida. Condições finais dependem da administradora.',
   provas: [
     { titulo: '1º lugar', texto: 'Troféu Fama 2025 · Montividiu-GO' },

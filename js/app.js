@@ -113,7 +113,7 @@ function iniciarSite(C) {
 
   const pill = $('tabPill');
   function moverPill() {
-    const on = document.querySelector('.tab.is-on');
+    const on = document.querySelector('#tabsBem .tab.is-on');
     pill.style.width = on.offsetWidth + 'px';
     pill.style.transform = `translateX(${on.offsetLeft}px)`;
   }
@@ -135,7 +135,7 @@ function iniciarSite(C) {
     pararTween();
     bemAtual = chave;
     const b = BENS[chave];
-    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('is-on', t.dataset.bem === chave));
+    document.querySelectorAll('#tabsBem .tab').forEach(t => t.classList.toggle('is-on', t.dataset.bem === chave));
     moverPill();
     // começa da mesma posição visual em que os controles estavam, na escala nova
     Object.assign(inValor, { min: b.min, max: b.max, step: 'any' });
@@ -222,7 +222,7 @@ function iniciarSite(C) {
       <text class="end" x="${x1 + 10}" y="${y(totalCons) + 4}" fill="#f6e08f">${curto(totalCons)}</text>`;
   }
 
-  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => escolherBem(t.dataset.bem)));
+  document.querySelectorAll('#tabsBem .tab').forEach(t => t.addEventListener('click', () => escolherBem(t.dataset.bem)));
   [inValor, inPrazo].forEach(inp => {
     inp.addEventListener('pointerdown', pararTween);
     inp.addEventListener('input', atualizarSimulador);
@@ -230,6 +230,73 @@ function iniciarSite(C) {
   escolherBem('auto', false);
   // a fonte muda a largura das abas depois de carregar
   document.fonts && document.fonts.ready.then(moverPill);
+
+  /* ---------- venda da cota contemplada ---------- */
+  // regra da Gold Star: paga um % do crédito; no lance embutido, desconta o embutido antes
+  const V = C.venda;
+  let forma = 'sorteio';
+  const pct2 = n => (isFinite(n) ? n * 100 : 0).toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '%';
+  $('vCredito').value = V.exemplo.credito;
+  $('vParcelas').value = V.exemplo.parcelas;
+  $('vParcela').value = V.exemplo.parcela;
+  $('vEmbutido').value = V.embutido;
+  $('vMes').closest('.cmp').hidden = V.retornoMes === 'oculto';
+  $('vNotaRetorno').textContent = V.retornoMes === 'oculto' ? ''
+    : V.retornoMes === 'simples' ? 'Retorno ao mês: retorno total dividido pelo número de parcelas pagas. '
+    : 'Retorno ao mês: taxa equivalente composta sobre o total investido no período. ';
+
+  function calcularVenda() {
+    const credito = Math.max(0, +$('vCredito').value || 0);
+    const embutido = forma === 'embutido' ? Math.min(100, Math.max(0, +$('vEmbutido').value || 0)) / 100 : 0;
+    const base = credito * (1 - embutido);
+    const recebe = base * V.percentual / 100;
+    const parcelas = Math.max(0, Math.round(+$('vParcelas').value || 0));
+    const investido = parcelas * Math.max(0, +$('vParcela').value || 0);
+    const lucro = recebe - investido;
+    const roi = investido > 0 ? lucro / investido : 0;
+    // retorno ao mês, conforme o dono escolheu no painel:
+    // composto = taxa que transforma o total investido no valor recebido no mesmo número de meses
+    // simples  = ROI dividido pelo número de meses
+    let mes = 0, ano = 0;
+    if (investido > 0 && parcelas > 0 && recebe > 0) {
+      if (V.retornoMes === 'simples') { mes = roi / parcelas; ano = mes * 12; }
+      else { mes = Math.pow(recebe / investido, 1 / parcelas) - 1; ano = Math.pow(1 + mes, 12) - 1; }
+    }
+    return { credito, embutido, base, recebe, parcelas, investido, lucro, roi, mes, ano };
+  }
+
+  function atualizarVenda() {
+    const r = calcularVenda();
+    $('vRegra').innerHTML = forma === 'sorteio'
+      ? `Contemplação por sorteio: pagamos <b>${pct(V.percentual)}%</b> sobre o crédito cheio de <b>${brl(r.credito)}</b>.`
+      : `Lance embutido: do crédito de ${brl(r.credito)} saem ${pct(r.embutido * 100)}% do lance, sobram <b>${brl(r.base)}</b>, e pagamos <b>${pct(V.percentual)}%</b> sobre esse valor.`;
+    animar($('vRecebe'), r.recebe);
+    animar($('vInvestido'), r.investido);
+    animar($('vLucro'), r.lucro);
+    $('vRoi').textContent = pct2(r.roi);
+    $('vMes').textContent = pct2(r.mes);
+    $('vAno').textContent = r.mes ? `≈ ${pct2(r.ano)} ao ano` : '';
+  }
+
+  // a pílula dourada desliza até a opção escolhida, como nas abas do simulador
+  function moverPillContemplacao() {
+    const on = document.querySelector('#tabsContemplacao .tab.is-on');
+    $('pillContemplacao').style.width = on.offsetWidth + 'px';
+    $('pillContemplacao').style.transform = `translateX(${on.offsetLeft}px)`;
+  }
+  window.addEventListener('resize', moverPillContemplacao);
+  document.fonts && document.fonts.ready.then(moverPillContemplacao);
+  moverPillContemplacao();
+
+  document.querySelectorAll('#tabsContemplacao .tab').forEach(t => t.addEventListener('click', () => {
+    forma = t.dataset.forma;
+    document.querySelectorAll('#tabsContemplacao .tab').forEach(x => x.classList.toggle('is-on', x === t));
+    moverPillContemplacao();
+    $('campoEmbutido').hidden = forma !== 'embutido';
+    atualizarVenda();
+  }));
+  ['vCredito', 'vEmbutido', 'vParcelas', 'vParcela'].forEach(id => $(id).addEventListener('input', atualizarVenda));
+  atualizarVenda();
 
   /* ---------- mapa do patrimônio ---------- */
   const ICONES = {
@@ -410,6 +477,13 @@ function iniciarSite(C) {
     const r = calcular(b, +inValor.value, +inPrazo.value);
     abrirLead('Receber minha simulação',
       `Fiz uma simulação:\nBem: ${b.nome}\nCarta: ${brl(+inValor.value)}\nPrazo: ${inPrazo.value} meses\nParcela estimada: ${brl(r.parcelaCons)}\n\nQuero falar com um consultor.`);
+  });
+
+  $('btnVender').addEventListener('click', () => {
+    const r = calcularVenda();
+    abrirLead('Vender minha cota',
+      `Quero vender minha cota contemplada:\nContemplação: ${forma === 'sorteio' ? 'sorteio' : 'lance embutido (' + pct(r.embutido * 100) + '%)'}\n` +
+      `Crédito: ${brl(r.credito)}\nParcelas pagas: ${r.parcelas} (total ${brl(r.investido)})\nValor estimado da proposta: ${brl(r.recebe)}\n\nQuero uma proposta para a minha cota.`);
   });
 
   $('btnPlano').addEventListener('click', () => {

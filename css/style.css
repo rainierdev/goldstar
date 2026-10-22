@@ -180,6 +180,18 @@ input[type=range]::-moz-range-thumb {
 .cmp-sub { color: var(--muted); font-size: .78rem; }
 .cmp-sub b { color: var(--text); font-weight: 600; }
 
+/* venda da cota */
+.venda { padding-top: 40px; }
+.field input.num {
+  width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg);
+  color: var(--text); font: 700 1.25rem "Sora", sans-serif; font-variant-numeric: tabular-nums;
+}
+.field input.num:focus { outline: 2px solid var(--gold); border-color: transparent; }
+.field-par { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.venda-regra { margin: 0; padding: 12px 14px; border-radius: 12px; background: rgba(212,169,58,.07); border: 1px solid rgba(212,169,58,.3); color: var(--muted); font-size: .85rem; }
+.venda-regra b { color: var(--gold-hi); }
+.venda-num { grid-template-columns: 1fr 1fr; margin-top: 4px; }
+.venda .sim-chart { justify-content: space-between; }
 .saving { display: flex; flex-direction: column; }
 .saving span { color: var(--muted); font-weight: 600; }
 .saving strong { font: 700 clamp(2rem, 4vw, 3rem) "Sora", sans-serif; font-variant-numeric: tabular-nums; }

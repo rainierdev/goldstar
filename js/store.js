@@ -15,6 +15,7 @@
       ...p, ...salvo,
       contato: { ...p.contato, ...(salvo.contato || {}) },
       topo: { ...p.topo, ...(salvo.topo || {}) },
+      venda: { ...p.venda, ...(salvo.venda || {}), exemplo: { ...p.venda.exemplo, ...((salvo.venda || {}).exemplo || {}) } },
       bens,
       objetivos: { ...p.objetivos, ...(salvo.objetivos || {}) },
       provas: Array.isArray(salvo.provas) ? salvo.provas : p.provas,
