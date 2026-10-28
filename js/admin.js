@@ -159,10 +159,20 @@
     ks.reduce((o, k) => o[k], C)[ult] = v;
   };
 
+  // a barra de salvar só aparece quando há alteração; depois de salvar, mostra o resultado e some
+  const barra = document.querySelector('.barra-salvar');
+  let esconderBarra = 0;
+  function mostrarBarra() { clearTimeout(esconderBarra); barra.classList.add('is-visivel'); }
+  function sumirBarraDepois(ms = 2500) {
+    clearTimeout(esconderBarra);
+    esconderBarra = setTimeout(() => { if (!sujo) barra.classList.remove('is-visivel'); }, ms);
+  }
+
   function marcar() {
     sujo = true;
     $('estado').textContent = 'Alterações não salvas.';
     $('estado').className = '';
+    mostrarBarra();
   }
 
   function montar() {
@@ -505,16 +515,18 @@
 
   $('btnSalvar').addEventListener('click', async () => {
     const m = problemas();
-    if (m.length) { $('estado').textContent = m[0]; $('estado').className = ''; return; }
+    if (m.length) { $('estado').textContent = m[0]; $('estado').className = ''; mostrarBarra(); return; }
     $('btnSalvar').disabled = true;
     try {
       await Store.salvarConfig(C);
       sujo = false;
       $('estado').textContent = 'Salvo às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '. Recarregue o site para ver.';
       $('estado').className = 'ok';
+      sumirBarraDepois();
     } catch (e) {
       console.error(e);
       $('estado').textContent = 'Não foi possível salvar. Tente de novo.';
+      mostrarBarra();
     }
     $('btnSalvar').disabled = false;
   });
@@ -537,6 +549,8 @@
       $('estado').textContent = 'Backup carregado. Confira e clique em Salvar.';
     } catch (err) {
       $('estado').textContent = 'Arquivo de backup inválido.';
+      mostrarBarra();
+      sumirBarraDepois(3500);
     }
     e.target.value = '';
   });
@@ -548,6 +562,8 @@
     montar();
     sujo = false;
     $('estado').textContent = 'Valores iniciais restaurados.';
+    mostrarBarra();
+    sumirBarraDepois();
   });
 
   window.addEventListener('beforeunload', e => { if (sujo) { e.preventDefault(); e.returnValue = ''; } });

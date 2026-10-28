@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20261028c">
+  <link rel="stylesheet" href="css/style.css?v=20261028d">
   <style>
     body { background: var(--bg); }
     .adm-top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 16px; padding: 12px max(16px, calc((100vw - 1100px) / 2)); background: rgba(10,10,11,.88); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
@@ -50,7 +50,10 @@
     .item-lista .campos { grid-template-columns: 1fr 1fr; }
     .chk { display: flex; gap: 8px; align-items: center; font-size: .85rem; color: var(--muted); font-weight: 600; }
     .chk input { accent-color: var(--gold); width: 18px; height: 18px; }
-    .barra-salvar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 14px 16px; background: rgba(10,10,11,.92); backdrop-filter: blur(12px); border-top: 1px solid var(--line); }
+    /* barra de salvar: escondida; sobe só quando há alteração (ou para mostrar o resultado) */
+    .barra-salvar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 14px 16px; background: rgba(10,10,11,.92); backdrop-filter: blur(12px); border-top: 1px solid var(--line);
+      transform: translateY(110%); visibility: hidden; transition: transform .35s cubic-bezier(.2,.8,.2,1), visibility 0s linear .35s; }
+    .barra-salvar.is-visivel { transform: none; visibility: visible; transition: transform .35s cubic-bezier(.2,.8,.2,1), visibility 0s; }
     .barra-salvar span { color: var(--muted); font-size: .88rem; }
     .barra-salvar span.ok { color: #7fd69a; }
     .login { max-width: 400px; margin: 12vh auto; }
@@ -243,7 +246,7 @@
   </div>
 </div>
 
-<script src="js/config.js?v=20261028c"></script>
+<script src="js/config.js?v=20261028d"></script>
 <script>
   // Supabase (ou Firebase) só é carregado quando o modo online está configurado em js/config.js
   if (window.GS_CONFIG.supabase) {
@@ -254,7 +257,7 @@
                    '<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"><\/script>');
   }
 </script>
-<script src="js/store.js?v=20261028c"></script>
-<script src="js/admin.js?v=20261028c"></script>
+<script src="js/store.js?v=20261028d"></script>
+<script src="js/admin.js?v=20261028d"></script>
 </body>
 </html>
