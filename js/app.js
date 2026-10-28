@@ -486,11 +486,20 @@ function iniciarSite(C) {
   // e a mensagem com a simulação abre pronta no WhatsApp da Gold Star
   let mensagemBase = '', origemLead = '';
 
+  // a janela tem dois passos: 1) dados do lead (salvos ao continuar); 2) quer falar com um consultor agora?
+  function irParaPasso(n) {
+    $('passo1').hidden = n !== 1;
+    $('passo2').hidden = n !== 2;
+    $('passoTexto').textContent = `Passo ${n} de 2`;
+    document.querySelectorAll('.passo-conta span').forEach((s, i) => s.classList.toggle('is-on', i < n));
+  }
+
   function abrirLead(titulo, corpo, origem) {
     mensagemBase = corpo;
     origemLead = origem;
     $('modalTitle').textContent = titulo;
     $('leadErro').textContent = '';
+    irParaPasso(1);
     $('modal').hidden = false;
     if (!cidadesCarregadas) carregarCidades($('leadUF').value);
     atualizarPreview();
@@ -554,8 +563,7 @@ function iniciarSite(C) {
     const fone = digitos($('leadFone').value);
     if (fone.length < 10) { $('leadErro').textContent = 'Informe o WhatsApp com DDD.'; $('leadFone').focus(); return; }
     if (!cidadeEscolhida()) { $('leadErro').textContent = 'Escolha a sua cidade.'; return; }
-    // o WhatsApp abre na hora (navegadores bloqueiam janelas abertas depois de esperar o salvamento)
-    window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(montarMensagem())}`, '_blank', 'noopener');
+    // o lead fica salvo já aqui, mesmo que a pessoa não queira falar agora
     Store.salvarLead({
       criadoEm: new Date().toISOString(),
       nome: $('leadNome').value.trim().slice(0, 80),
@@ -565,8 +573,17 @@ function iniciarSite(C) {
       origem: origemLead,
       resumo: mensagemBase.slice(0, 1500),
     }).catch(err => console.error('lead não salvo', err));
+    $('passo2Titulo').textContent = `Obrigado, ${$('leadNome').value.trim().split(/\s+/)[0]}! Recebemos seus dados.`;
+    atualizarPreview();
+    irParaPasso(2);
+  });
+
+  // o WhatsApp só abre se a pessoa escolher falar com um consultor (clique direto, sem bloqueio de janela)
+  $('btnZapSim').addEventListener('click', () => {
+    window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(montarMensagem())}`, '_blank', 'noopener');
     $('modal').hidden = true;
   });
+  $('btnZapNao').addEventListener('click', () => { $('modal').hidden = true; });
 
   $('btnMetodo').addEventListener('click', () => {
     abrirLead('Construir meu patrimônio',

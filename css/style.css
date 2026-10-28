@@ -373,6 +373,13 @@ input[type=range]::-moz-range-thumb {
 .input input:focus, .input select:focus { outline: 2px solid var(--gold); border-color: transparent; }
 .input select { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font: 500 1rem "Manrope", sans-serif; width: 100%; }
 .input-par { display: grid; grid-template-columns: 96px 1fr; gap: 10px; }
+.passo { display: flex; flex-direction: column; gap: 12px; animation: pop .3s ease-out; }
+.passo[hidden] { display: none; }
+.passo-conta { display: flex; align-items: center; gap: 6px; margin: 0; font-size: .75rem; color: var(--muted); }
+.passo-conta span { width: 26px; height: 4px; border-radius: 4px; background: var(--line); transition: background .3s; }
+.passo-conta span.is-on { background: var(--gold); }
+.passo-conta b { margin-left: 6px; font-weight: 700; }
+.passo2-acoes { display: flex; flex-direction: column; gap: 8px; }
 .erro-lead { margin: 0; color: #f28b6b; font-size: .82rem; font-weight: 700; }
 .erro-lead:empty { display: none; }
 .modal-box { max-height: calc(100vh - 32px); overflow-y: auto; }

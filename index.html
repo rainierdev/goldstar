@@ -335,8 +335,12 @@
 <div class="modal" id="modal" hidden>
   <form class="modal-box" id="leadForm">
     <button type="button" class="modal-x" id="modalX" aria-label="Fechar">×</button>
+    <p class="passo-conta"><span class="is-on"></span><span></span> <b id="passoTexto">Passo 1 de 2</b></p>
+
+    <!-- passo 1: dados do lead (já fica salvo ao continuar) -->
+    <div class="passo" id="passo1">
     <h3 id="modalTitle">Quase lá</h3>
-    <p class="muted">Sua mensagem já vai pronta para o consultor.</p>
+    <p class="muted">Deixe seus dados para receber a sua simulação.</p>
     <label class="input"><span>Seu nome</span><input id="leadNome" required autocomplete="name" maxlength="80"></label>
     <label class="input"><span>WhatsApp</span><input id="leadFone" required type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(64) 99999-9999" maxlength="16"></label>
     <div class="input-par">
@@ -357,9 +361,20 @@
       </label>
     </div>
     <p class="erro-lead" id="leadErro"></p>
-    <pre class="preview" id="leadPreview"></pre>
-    <label class="check"><input type="checkbox" id="leadOk" required> Autorizo o contato da Gold Star pelo WhatsApp.</label>
-    <button class="btn btn-gold btn-block" type="submit">Abrir o WhatsApp</button>
+    <label class="check"><input type="checkbox" id="leadOk" required> Autorizo a Gold Star a guardar meus dados e entrar em contato comigo.</label>
+    <button class="btn btn-gold btn-block" type="submit">Continuar</button>
+    </div>
+
+    <!-- passo 2: quer falar com um consultor agora? -->
+    <div class="passo" id="passo2" hidden>
+      <h3 id="passo2Titulo">Recebemos seus dados!</h3>
+      <p class="muted">Quer falar agora com um consultor pelo WhatsApp? A mensagem já vai pronta:</p>
+      <pre class="preview" id="leadPreview"></pre>
+      <div class="passo2-acoes">
+        <button class="btn btn-gold btn-block" type="button" id="btnZapSim">Sim, falar com um consultor</button>
+        <button class="btn btn-ghost btn-block" type="button" id="btnZapNao">Não, voltar ao site</button>
+      </div>
+    </div>
   </form>
 </div>
 
@@ -369,7 +384,6 @@
 
 <script src="js/config.js"></script>
 <script>
-  // o Firebase só é carregado quando o dono configura o modo online em js/config.js
   // Supabase (ou Firebase) só é carregado quando o modo online está configurado em js/config.js
   if (window.GS_CONFIG.supabase) {
     document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"><\/script>');
