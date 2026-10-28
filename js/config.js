@@ -57,7 +57,10 @@ window.GS_PADRAO = {
     },
     imovel: {
       nome: 'Imóvel', min: 100000, max: 1500000, passo: 10000, fundo: 0, juros: 0.95,
-      prazos: [{ meses: 180, taxa: 23 }, { meses: 200, taxa: 23 }, { meses: 220, taxa: 23 }, { meses: 240, taxa: 24 }]
+      prazos: [{ meses: 180, taxa: 23 }, { meses: 200, taxa: 23 }, { meses: 220, taxa: 23 }, { meses: 240, taxa: 24 }],
+      // o prazo é definido pelo valor do crédito (regra da administradora); o visitante só escolhe o crédito.
+      // ate = crédito máximo da faixa; null = acima da faixa anterior
+      faixas: [{ ate: 180000, meses: 180 }, { ate: 400000, meses: 200 }, { ate: 1220000, meses: 220 }, { ate: null, meses: 240 }]
     },
     pesados: {
       nome: 'Pesados e agro', min: 80000, max: 1000000, passo: 10000, fundo: 0, juros: 1.60,

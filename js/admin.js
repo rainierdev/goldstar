@@ -10,7 +10,9 @@
   const PRAZOS_VEICULO = [{ meses: 36, taxa: 9.5 }, { meses: 72, taxa: 16 }, { meses: 100, taxa: 16 }, { meses: 120, taxa: 16 }, { meses: 140, taxa: 16 }];
   const SUGESTAO = {
     auto:    { fundo: 0, juros: 1.89, prazos: PRAZOS_VEICULO },
-    imovel:  { fundo: 0, juros: 0.95, prazos: [{ meses: 180, taxa: 23 }, { meses: 200, taxa: 23 }, { meses: 220, taxa: 23 }, { meses: 240, taxa: 24 }] },
+    imovel:  { fundo: 0, juros: 0.95, prazos: [{ meses: 180, taxa: 23 }, { meses: 200, taxa: 23 }, { meses: 220, taxa: 23 }, { meses: 240, taxa: 24 }],
+               // prazo pelo valor do crédito, como o cliente explicou
+               faixas: [{ ate: 180000, meses: 180 }, { ate: 400000, meses: 200 }, { ate: 1220000, meses: 220 }, { ate: null, meses: 240 }] },
     pesados: { fundo: 0, juros: 1.60, prazos: PRAZOS_VEICULO },
   };
   // faixas usuais de mercado (não são limites da lei; servem para alertar valores fora do comum)
@@ -177,8 +179,16 @@
   /* ---------- simulador e taxas ---------- */
   // como no site e na planilha: carta × (1 + taxa do prazo + fundo extra) ÷ prazo; meia parcela é a metade
   const ultimoPrazo = b => [...b.prazos].sort((x, y) => x.meses - y.meses).pop() || { meses: 1, taxa: 0 };
+  const limite = f => (f.ate == null || f.ate === '' ? Infinity : +f.ate);
+  // igual ao site: com faixas, o prazo sai do valor do crédito (o prazo cadastrado mais próximo do da faixa)
+  function prazoDoCredito(b, valor) {
+    const faixas = [...(b.faixas || [])].sort((x, y) => limite(x) - limite(y));
+    if (!faixas.length) return ultimoPrazo(b);
+    const f = faixas.find(x => valor <= limite(x)) || faixas[faixas.length - 1];
+    return b.prazos.reduce((m, p) => (Math.abs(p.meses - f.meses) < Math.abs(m.meses - f.meses) ? p : m), b.prazos[0]);
+  }
   function calcular(b) {
-    const g = ultimoPrazo(b);
+    const g = prazoDoCredito(b, +b.min);
     const valor = +b.min, prazo = +g.meses, i = +b.juros / 100;
     const totalCons = valor * (1 + (+g.taxa + +b.fundo) / 100);
     const parcelaFin = i > 0 ? valor * i / (1 - Math.pow(1 + i, -prazo)) : valor / prazo;
@@ -207,7 +217,18 @@
     if (!b.prazos.length) m.push('Cadastre pelo menos um prazo.');
     if (b.prazos.some(p => !(+p.meses > 0))) m.push('Todo prazo precisa ter os meses preenchidos.');
     if (new Set(b.prazos.map(p => +p.meses)).size !== b.prazos.length) m.push('Há prazos repetidos.');
+    const fx = b.faixas || [];
+    if (fx.some(f => !b.prazos.some(p => +p.meses === +f.meses))) m.push('Toda faixa de crédito precisa usar um prazo cadastrado na tabela de taxas.');
+    if (fx.length && !fx.some(f => f.ate == null || f.ate === '')) m.push('Deixe a última faixa com o crédito "até" em branco, para valer acima da anterior.');
     return m.join(' ');
+  }
+
+  function linhasFaixas(k, b) {
+    return (b.faixas || []).map((f, i) => `<div class="prazo-linha">
+      <label class="campo"><span>Crédito até (R$) · vazio = acima</span><input type="number" min="0" step="any" data-faixa="${k}" data-i="${i}" data-campo="ate" value="${f.ate == null ? '' : esc(f.ate)}"></label>
+      <label class="campo"><span>Prazo (meses)</span><input type="number" min="1" step="1" data-faixa="${k}" data-i="${i}" data-campo="meses" value="${esc(f.meses)}"></label>
+      <button class="btn btn-link" type="button" data-tirar-faixa="${k}" data-i="${i}" aria-label="Remover faixa">Remover</button>
+    </div>`).join('');
   }
 
   function linhasPrazos(k, b) {
@@ -234,13 +255,17 @@
           ${num('max', 'Carta máxima (R$)')}
           ${num('passo', 'Passo do controle (R$)')}
         </div>
-        <p class="ref" style="margin-top:8px">O simulador sempre abre na carta mínima e no maior prazo (a menor parcela).</p>
+        <p class="ref" style="margin-top:8px">O simulador sempre abre na carta mínima (com o prazo da faixa, se houver; senão no maior prazo).</p>
         <p class="alerta" data-alerta-faixa="${k}"></p>
         <h3 class="sub-titulo">Prazos dos grupos e taxas</h3>
         <p class="ref">Taxa de administração + fundo de reserva sobre o crédito, por prazo de grupo, como na planilha da administradora. Livre por contrato (Lei 11.795/2008; STJ, Súmula 538). Sugestão da planilha: ${s.prazos.map(p => `${p.meses} meses ${pct(p.taxa)}%`).join(' · ')}.</p>
         <div class="prazos" data-prazos="${k}">${linhasPrazos(k, b)}</div>
         <button class="btn btn-ghost btn-sm" type="button" data-novo-prazo="${k}">+ Novo prazo</button>
         <p class="alerta" data-alerta-prazos="${k}"></p>
+        <h3 class="sub-titulo">Prazo pelo valor do crédito</h3>
+        <p class="ref">Quando a administradora define o prazo pelo crédito, cadastre as faixas: o visitante escolhe só o crédito e o site mostra a parcela no prazo da faixa. Sem faixas, o visitante escolhe o prazo.</p>
+        <div class="prazos" data-faixas="${k}">${linhasFaixas(k, b)}</div>
+        <button class="btn btn-ghost btn-sm" type="button" data-nova-faixa="${k}">+ Nova faixa</button>
         <div class="taxas">
           <div class="taxa">
             ${num('fundo', 'Taxa extra além da tabela (%)')}
@@ -264,6 +289,14 @@
     if (!el.dataset.ligado) {
       el.dataset.ligado = '1';
       el.addEventListener('input', e => {
+        const fx = e.target.closest('[data-faixa]');
+        if (fx) {
+          // "até" vazio = faixa final (acima da anterior)
+          C.bens[fx.dataset.faixa].faixas[+fx.dataset.i][fx.dataset.campo] = fx.dataset.campo === 'ate' && fx.value === '' ? null : +fx.value;
+          atualizarBem(fx.dataset.faixa);
+          marcar();
+          return;
+        }
         const inp = e.target.closest('[data-prazo]');
         if (!inp) return;
         C.bens[inp.dataset.prazo].prazos[+inp.dataset.i][inp.dataset.campo] = +inp.value;
@@ -271,6 +304,19 @@
         marcar();
       });
       el.addEventListener('click', e => {
+        const tirarF = e.target.closest('[data-tirar-faixa]');
+        const novaF = e.target.closest('[data-nova-faixa]');
+        if (tirarF || novaF) {
+          const kf = tirarF ? tirarF.dataset.tirarFaixa : novaF.dataset.novaFaixa;
+          const bf = C.bens[kf];
+          bf.faixas = bf.faixas || [];
+          if (tirarF) bf.faixas.splice(+tirarF.dataset.i, 1);
+          else bf.faixas.push({ ate: null, meses: ultimoPrazo(bf).meses });
+          el.querySelector(`[data-faixas="${kf}"]`).innerHTML = linhasFaixas(kf, bf);
+          atualizarBem(kf);
+          marcar();
+          return;
+        }
         const tirar = e.target.closest('[data-tirar-prazo]');
         const novo = e.target.closest('[data-novo-prazo]');
         const k = tirar ? tirar.dataset.tirarPrazo : novo ? novo.dataset.novoPrazo : null;
@@ -308,9 +354,10 @@
     });
     el.querySelectorAll('[data-sugestao]').forEach(btn => btn.addEventListener('click', () => {
       const k = btn.dataset.sugestao, s = SUGESTAO[k];
-      Object.assign(C.bens[k], { fundo: s.fundo, juros: s.juros, prazos: s.prazos.map(p => ({ ...p })) });
+      Object.assign(C.bens[k], { fundo: s.fundo, juros: s.juros, prazos: s.prazos.map(p => ({ ...p })), faixas: (s.faixas || []).map(f => ({ ...f })) });
       ['fundo', 'juros'].forEach(c => { el.querySelector(`input[data-bem="${k}"][data-campo="${c}"]`).value = s[c]; });
       el.querySelector(`[data-prazos="${k}"]`).innerHTML = linhasPrazos(k, C.bens[k]);
+      el.querySelector(`[data-faixas="${k}"]`).innerHTML = linhasFaixas(k, C.bens[k]);
       atualizarBem(k);
       marcar();
     }));

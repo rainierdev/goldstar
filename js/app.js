@@ -14,6 +14,9 @@ function iniciarSite(C) {
     BENS[k] = {
       nome: b.nome, min: b.min, max: b.max, step: b.passo, prazos,
       valor: b.min, ultimo: prazos.length - 1, // abre na carta mínima e no maior prazo (menor parcela)
+      // faixas de crédito → prazo (regra da administradora); com faixas, o visitante não escolhe o prazo
+      faixas: (b.faixas || []).map(f => ({ ate: f.ate == null || f.ate === '' ? Infinity : +f.ate, meses: +f.meses }))
+        .sort((x, y) => x.ate - y.ate),
       juros: b.juros / 100, jurosTxt: pct(b.juros) + '% a.m.',
     };
   });
@@ -47,7 +50,17 @@ function iniciarSite(C) {
 
   // consórcio (como na planilha): carta × (1 + taxa do prazo) ÷ prazo; meia parcela = metade até a contemplação
   // financiamento: tabela Price sobre 100% do valor, para comparar
+  // prazo pela faixa de crédito: primeira faixa que comporta o valor; se o prazo da faixa não estiver
+  // na tabela de taxas, usa o prazo cadastrado mais próximo
+  function idxPorCredito(bem, valor) {
+    const f = bem.faixas.find(x => valor <= x.ate) || bem.faixas[bem.faixas.length - 1];
+    let melhor = 0;
+    bem.prazos.forEach((p, i) => { if (Math.abs(p.meses - f.meses) < Math.abs(bem.prazos[melhor].meses - f.meses)) melhor = i; });
+    return melhor;
+  }
+
   function calcular(bem, valor, idx) {
+    if (bem.faixas.length) idx = idxPorCredito(bem, valor);
     const g = bem.prazos[Math.max(0, Math.min(bem.ultimo, Math.round(idx)))];
     const prazo = g.meses;
     const totalCons = valor * (1 + g.taxa);
@@ -158,6 +171,11 @@ function iniciarSite(C) {
     $('minPrazo').textContent = b.prazos[0].meses + ' meses';
     $('maxPrazo').textContent = b.prazos[b.ultimo].meses + ' meses';
     $('jurosTxt').textContent = '· ' + b.jurosTxt;
+    // com faixas de crédito, o prazo não é escolhido: some a barra e aparece só a informação
+    const porCredito = b.faixas.length > 0;
+    inPrazo.hidden = porCredito;
+    $('escalaPrazo').hidden = porCredito;
+    $('notaPrazo').hidden = !porCredito;
 
     const fim = () => {
       tween = 0;
@@ -434,7 +452,7 @@ function iniciarSite(C) {
         return `<div class="plan-item">
           <div class="plan-item-top">${o.nome} em ${p.ano}<span>${brl(p.valor)}</span></div>
           <input type="range" min="${b.min}" max="${b.max}" step="${b.step}" value="${p.valor}" data-valor="${p.id}">
-          <div class="plan-item-sub"><span>${b.prazos[b.ultimo].meses} meses</span><span>parcela <b>${brl(r.parcelaCons)}</b></span></div>
+          <div class="plan-item-sub"><span>${r.prazo} meses</span><span>parcela <b>${brl(r.parcelaCons)}</b></span></div>
         </div>`;
       }).join('');
       lista.querySelectorAll('[data-valor]').forEach(inp => {
@@ -446,7 +464,9 @@ function iniciarSite(C) {
           const p = plano.find(x => x.id === +inp.dataset.valor);
           const b = BENS[OBJETIVOS[p.tipo].bem];
           item.querySelector('.plan-item-top span').textContent = brl(p.valor);
-          item.querySelector('.plan-item-sub b').textContent = brl(calcular(b, p.valor, b.ultimo).parcelaCons);
+          const r = calcular(b, p.valor, b.ultimo);
+          item.querySelector('.plan-item-sub b').textContent = brl(r.parcelaCons);
+          item.querySelector('.plan-item-sub span').textContent = r.prazo + ' meses'; // com faixas, o prazo muda com o valor
           atualizarTotais();
           renderTokens();
         });

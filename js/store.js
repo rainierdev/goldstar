@@ -15,6 +15,7 @@
       bens[k] = { ...p.bens[k], ...s };
       // configuração salva antes da lista de prazos da planilha: usa os prazos padrão
       if (!Array.isArray(s.prazos) || !s.prazos.length) bens[k].prazos = p.bens[k].prazos;
+      if (!Array.isArray(bens[k].faixas)) bens[k].faixas = [];  // sem faixas: o visitante escolhe o prazo
     });
     return {
       ...p, ...salvo,

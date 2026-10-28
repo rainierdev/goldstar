@@ -156,6 +156,8 @@ section { padding: 96px 20px; }
 .field { display: flex; flex-direction: column; gap: 10px; }
 .field-top { display: flex; justify-content: space-between; align-items: baseline; color: var(--muted); font-weight: 600; }
 .field-top strong { color: var(--text); font: 700 1.35rem "Sora", sans-serif; font-variant-numeric: tabular-nums; }
+.nota-prazo { font-size: .78rem; color: var(--muted); }
+.nota-prazo[hidden], #inPrazo[hidden], .field-scale[hidden] { display: none; }
 .field-scale { display: flex; justify-content: space-between; color: var(--muted); font-size: .75rem; }
 input[type=range] {
   -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 6px;
