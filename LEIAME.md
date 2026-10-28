@@ -52,3 +52,7 @@ Os leads ficam em **Table Editor › leads**, onde dá para filtrar e exportar C
 7. Publique o site de novo e entre no painel com o e-mail e a senha do passo 3. Clique em **Salvar** uma vez para gravar os valores no banco.
 
 Depois, adicione o domínio do site em Firebase, *Authentication*, *Configurações*, *Domínios autorizados*.
+
+## Ao publicar uma atualização
+
+Troque o número de versão (`?v=...`) nos links de `css/style.css` e `js/*.js` em `index.html` e `admin.html`. Assim o navegador dos visitantes baixa os arquivos novos na hora, em vez de usar a cópia guardada.
