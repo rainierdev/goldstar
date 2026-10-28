@@ -12,5 +12,18 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // Leads do site: o visitante só cria (com os campos e tamanhos certos); só o dono lê e apaga.
+    match /leads/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['criadoEm', 'nome', 'telefone', 'estado', 'cidade', 'origem', 'resumo'])
+                    && request.resource.data.nome is string && request.resource.data.nome.size() > 0 && request.resource.data.nome.size() <= 80
+                    && request.resource.data.telefone is string && request.resource.data.telefone.matches('^[0-9]{10,11}$')
+                    && request.resource.data.estado is string && request.resource.data.estado.size() == 2
+                    && request.resource.data.cidade is string && request.resource.data.cidade.size() <= 80
+                    && request.resource.data.origem is string && request.resource.data.origem.size() <= 40
+                    && request.resource.data.resumo is string && request.resource.data.resumo.size() <= 1500;
+      allow read, delete: if isAdmin();
+      allow update: if false;
+    }
   }
 }

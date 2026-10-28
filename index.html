@@ -23,6 +23,7 @@
   <nav class="nav">
     <a href="#simulador">Simulador</a>
     <a href="#vender">Vender cota</a>
+    <a href="#metodo">Método API</a>
     <a href="#mapa">Mapa do patrimônio</a>
     <a href="#entregas">Entregas</a>
     <a href="#avaliacoes">Avaliações</a>
@@ -67,7 +68,7 @@
         <span class="plan-from">a partir de</span>
         <strong class="plan-price" data-from="pesados">R$ 0</strong>
         <span class="plan-per">por mês</span>
-        <img class="plan-art" src="img/plano-pesados.png" alt="Trator">
+        <img class="plan-art" src="img/plano-pesados.png" alt="Caminhão e trator">
       </button>
     </div>
   </section>
@@ -101,11 +102,18 @@
           <span class="field-scale"><span id="minPrazo"></span><span id="maxPrazo"></span></span>
         </label>
 
+        <!-- parcela cheia ou meia parcela até a contemplação (como na planilha) -->
+        <div class="tabs" role="tablist" id="tabsParcela">
+          <span class="tab-pill" id="pillParcela" aria-hidden="true"></span>
+          <button class="tab is-on" data-meia="0" role="tab" type="button">Parcela cheia</button>
+          <button class="tab" data-meia="1" role="tab" type="button">Meia parcela</button>
+        </div>
+
         <div class="compare">
           <div class="cmp cmp-gold">
-            <span class="cmp-label">Consórcio</span>
+            <span class="cmp-label"><span id="labelCons">Consórcio</span> <i id="taxaCons"></i></span>
             <strong class="cmp-value" id="parcelaCons">R$ 0</strong>
-            <span class="cmp-sub">por mês · total <b id="totalCons">R$ 0</b></span>
+            <span class="cmp-sub" id="subCons">por mês</span>
           </div>
           <div class="cmp">
             <span class="cmp-label">Financiamento <i id="jurosTxt"></i></span>
@@ -192,6 +200,40 @@
     <div class="proof-item"><strong>Planejar · Proteger · Multiplicar</strong><span>atendimento do primeiro boleto à chave na mão</span></div>
   </section>
 
+  <!-- MÉTODO API: texto enviado pelo cliente -->
+  <section id="metodo" class="metodo">
+    <div class="sec-head">
+      <p class="eyebrow">Método API · Aplicar • Poupar • Investir</p>
+      <h2>Seu patrimônio não cresce por acaso. <span class="gold">Cresce com decisões inteligentes.</span></h2>
+      <p class="lead">Acreditamos que a construção de um futuro sólido começa com planejamento, disciplina e estratégia. Por isso, nossa metodologia se baseia em três pilares fundamentais:</p>
+    </div>
+    <div class="pilares">
+      <article class="pilar">
+        <span class="pilar-letra" aria-hidden="true">A</span>
+        <h3>Aplicar</h3>
+        <p class="pilar-frase">Transforme seus objetivos em ação.</p>
+        <p>Cada conquista começa com uma decisão. Aplicar é direcionar seus recursos de forma estratégica, criando oportunidades para realizar seus projetos e construir patrimônio.</p>
+      </article>
+      <article class="pilar">
+        <span class="pilar-letra" aria-hidden="true">P</span>
+        <h3>Poupar</h3>
+        <p class="pilar-frase">O equilíbrio de hoje constrói a segurança de amanhã.</p>
+        <p>Poupar é utilizar seus recursos com inteligência, organizar suas finanças e manter a disciplina necessária para conquistar seus objetivos sem comprometer sua estabilidade financeira.</p>
+      </article>
+      <article class="pilar">
+        <span class="pilar-letra" aria-hidden="true">I</span>
+        <h3>Investir</h3>
+        <p class="pilar-frase">Faça seu planejamento trabalhar pelo seu futuro.</p>
+        <p>Investir é identificar oportunidades, tomar decisões conscientes e utilizar soluções patrimoniais para ampliar suas conquistas ao longo do tempo.</p>
+      </article>
+    </div>
+    <div class="metodo-fecho">
+      <p class="metodo-sigla">API <span>— Aplicar • Poupar • Investir</span></p>
+      <p class="metodo-frase">Mais do que conquistar bens. Construir patrimônio com inteligência.</p>
+      <button class="btn btn-gold" type="button" id="btnMetodo">Quero construir meu patrimônio</button>
+    </div>
+  </section>
+
   <!-- 3. MAPA DO PATRIMÔNIO -->
   <section id="mapa" class="map">
     <div class="sec-head">
@@ -272,7 +314,7 @@
 
   <section class="cta">
     <div class="cta-media">
-      <video id="ctaVideo" data-src="video/consultor.mp4" poster="img/atendimento-consultor.jpg" muted loop playsinline preload="none" aria-label="Consultor Gold Star em atendimento"></video>
+      <video id="ctaVideo" data-src="video/patrimonio.mp4" poster="img/patrimonio-capa.jpg" muted loop playsinline preload="none" aria-label="Vídeo da Gold Star: seu patrimônio não acontece por acaso"></video>
       <button class="cta-som" id="ctaSom" type="button" aria-label="Ativar som">Ativar som</button>
     </div>
     <div>
@@ -295,8 +337,26 @@
     <button type="button" class="modal-x" id="modalX" aria-label="Fechar">×</button>
     <h3 id="modalTitle">Quase lá</h3>
     <p class="muted">Sua mensagem já vai pronta para o consultor.</p>
-    <label class="input"><span>Seu nome</span><input id="leadNome" required autocomplete="name"></label>
-    <label class="input"><span>Cidade</span><input id="leadCidade" autocomplete="address-level2" placeholder="Ex.: Rio Verde"></label>
+    <label class="input"><span>Seu nome</span><input id="leadNome" required autocomplete="name" maxlength="80"></label>
+    <label class="input"><span>WhatsApp</span><input id="leadFone" required type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(64) 99999-9999" maxlength="16"></label>
+    <div class="input-par">
+      <label class="input"><span>Estado</span>
+        <select id="leadUF" required autocomplete="address-level1">
+          <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option><option value="AM">AM</option>
+          <option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option>
+          <option value="GO" selected>GO</option><option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option>
+          <option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option><option value="PR">PR</option>
+          <option value="PE">PE</option><option value="PI">PI</option><option value="RJ">RJ</option><option value="RN">RN</option>
+          <option value="RS">RS</option><option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
+          <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+        </select>
+      </label>
+      <label class="input"><span>Cidade</span>
+        <select id="leadCidade" required autocomplete="address-level2"><option value="">Carregando…</option></select>
+        <input id="leadCidadeTexto" autocomplete="address-level2" placeholder="Digite sua cidade" maxlength="80" hidden>
+      </label>
+    </div>
+    <p class="erro-lead" id="leadErro"></p>
     <pre class="preview" id="leadPreview"></pre>
     <label class="check"><input type="checkbox" id="leadOk" required> Autorizo o contato da Gold Star pelo WhatsApp.</label>
     <button class="btn btn-gold btn-block" type="submit">Abrir o WhatsApp</button>
@@ -310,7 +370,10 @@
 <script src="js/config.js"></script>
 <script>
   // o Firebase só é carregado quando o dono configura o modo online em js/config.js
-  if (window.GS_CONFIG.firebase) {
+  // Supabase (ou Firebase) só é carregado quando o modo online está configurado em js/config.js
+  if (window.GS_CONFIG.supabase) {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"><\/script>');
+  } else if (window.GS_CONFIG.firebase) {
     document.write('<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"><\/script>' +
                    '<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"><\/script>' +
                    '<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"><\/script>');

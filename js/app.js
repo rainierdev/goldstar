@@ -6,15 +6,19 @@ function iniciarSite(C) {
   const WHATSAPP = C.contato.whatsapp;
   const pct = n => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
 
-  // no painel as taxas estão em %, aqui viram fração
+  // no painel as taxas estão em %, aqui viram fração. Os prazos são os dos grupos da planilha,
+  // cada um com a sua taxa; o controle de prazo anda pelo índice dessa lista.
   const BENS = {};
   Object.entries(C.bens).forEach(([k, b]) => {
+    const prazos = [...b.prazos].sort((x, y) => x.meses - y.meses).map(p => ({ meses: +p.meses, taxa: (+p.taxa + +b.fundo) / 100 }));
     BENS[k] = {
-      nome: b.nome, min: b.min, max: b.max, step: b.passo, valor: b.valor,
-      pMin: b.prazoMin, pMax: b.prazoMax, prazo: b.prazo,
-      adm: b.adm / 100, fr: b.fundo / 100, juros: b.juros / 100, jurosTxt: pct(b.juros) + '% a.m.',
+      nome: b.nome, min: b.min, max: b.max, step: b.passo, prazos,
+      valor: b.min, ultimo: prazos.length - 1, // abre na carta mínima e no maior prazo (menor parcela)
+      juros: b.juros / 100, jurosTxt: pct(b.juros) + '% a.m.',
     };
   });
+  const MEIA = C.meiaParcela.ativa;
+  let meia = MEIA && C.meiaParcela.padrao;
 
   // texto digitado no painel entra na página como texto, nunca como HTML
   const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -41,13 +45,18 @@ function iniciarSite(C) {
   const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
   const curto = v => v >= 1e6 ? 'R$ ' + (v / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + ' mi' : 'R$ ' + Math.round(v / 1000) + ' mil';
 
-  // consórcio: carta + taxa de administração + fundo de reserva, dividido no prazo
+  // consórcio (como na planilha): carta × (1 + taxa do prazo) ÷ prazo; meia parcela = metade até a contemplação
   // financiamento: tabela Price sobre 100% do valor, para comparar
-  function calcular(bem, valor, prazo) {
-    const totalCons = valor * (1 + bem.adm + bem.fr);
+  function calcular(bem, valor, idx) {
+    const g = bem.prazos[Math.max(0, Math.min(bem.ultimo, Math.round(idx)))];
+    const prazo = g.meses;
+    const totalCons = valor * (1 + g.taxa);
     const parcelaFin = valor * bem.juros / (1 - Math.pow(1 + bem.juros, -prazo));
     return {
+      prazo,
+      taxa: g.taxa,
       parcelaCons: totalCons / prazo,
+      meiaParcela: totalCons / prazo / 2,
       totalCons,
       parcelaFin,
       totalFin: parcelaFin * prazo,
@@ -70,9 +79,13 @@ function iniciarSite(C) {
   }
 
   /* ---------- cards do topo ---------- */
+  // "a partir de": menor carta no maior prazo, com meia parcela quando ela estiver ativa (como na planilha)
   document.querySelectorAll('[data-from]').forEach(el => {
     const bem = BENS[el.dataset.from];
-    animar(el, calcular(bem, bem.min, bem.pMax).parcelaCons);
+    const r = calcular(bem, bem.min, bem.ultimo);
+    animar(el, MEIA ? r.meiaParcela : r.parcelaCons);
+    const per = el.closest('.plan-card').querySelector('.plan-per');
+    per.textContent = MEIA ? `meia parcela · ${r.prazo} meses` : `por mês · ${r.prazo} meses`;
   });
   document.querySelectorAll('.plan-card').forEach(card => card.addEventListener('click', () => {
     rolarPara($('simulador'));
@@ -139,11 +152,11 @@ function iniciarSite(C) {
     moverPill();
     // começa da mesma posição visual em que os controles estavam, na escala nova
     Object.assign(inValor, { min: b.min, max: b.max, step: 'any' });
-    Object.assign(inPrazo, { min: b.pMin, max: b.pMax, step: 'any' });
+    Object.assign(inPrazo, { min: 0, max: b.ultimo, step: 'any' });
     $('minValor').textContent = curto(b.min);
     $('maxValor').textContent = curto(b.max);
-    $('minPrazo').textContent = b.pMin + ' meses';
-    $('maxPrazo').textContent = b.pMax + ' meses';
+    $('minPrazo').textContent = b.prazos[0].meses + ' meses';
+    $('maxPrazo').textContent = b.prazos[b.ultimo].meses + ' meses';
     $('jurosTxt').textContent = '· ' + b.jurosTxt;
 
     const fim = () => {
@@ -151,7 +164,7 @@ function iniciarSite(C) {
       inValor.step = b.step;
       inPrazo.step = 1;
       inValor.value = b.valor;
-      inPrazo.value = b.prazo;
+      inPrazo.value = b.ultimo;
       atualizarSimulador();
     };
     if (!animarTroca) return fim();
@@ -160,13 +173,13 @@ function iniciarSite(C) {
     grafico.classList.add('is-swapping');
     setTimeout(() => grafico.classList.remove('is-swapping'), 280);
 
-    const de = { v: b.min + pctV * (b.max - b.min), p: b.pMin + pctP * (b.pMax - b.pMin) };
+    const de = { v: b.min + pctV * (b.max - b.min), p: pctP * b.ultimo };
     const t0 = performance.now();
     const passo = t => {
       const k = Math.min(1, (t - t0) / 700);
       const e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
       inValor.value = de.v + (b.valor - de.v) * e;
-      inPrazo.value = Math.round(de.p + (b.prazo - de.p) * e);
+      inPrazo.value = Math.round(de.p + (b.ultimo - de.p) * e);
       atualizarSimulador();
       if (k < 1) tween = requestAnimationFrame(passo); else fim();
     };
@@ -176,15 +189,19 @@ function iniciarSite(C) {
   function atualizarSimulador() {
     const b = BENS[bemAtual];
     const valor = +inValor.value;
-    const prazo = +inPrazo.value;
-    const r = calcular(b, valor, prazo);
+    const r = calcular(b, valor, +inPrazo.value);
+    const prazo = r.prazo;
     pintarTrilho(inValor);
     pintarTrilho(inPrazo);
     $('outValor').textContent = brl(valor);
     $('outPrazo').textContent = prazo + ' meses';
-    animar($('parcelaCons'), r.parcelaCons);
+    $('taxaCons').textContent = `· taxa ${pct(r.taxa * 100)}%`;
+    $('labelCons').textContent = meia ? 'Consórcio · meia parcela' : 'Consórcio';
+    $('subCons').innerHTML = meia
+      ? `até a contemplação · cheia <b>${brl(r.parcelaCons)}</b>`
+      : `por mês · total <b>${brl(r.totalCons)}</b>`;
+    animar($('parcelaCons'), meia ? r.meiaParcela : r.parcelaCons);
     animar($('parcelaFin'), r.parcelaFin);
-    animar($('totalCons'), r.totalCons);
     animar($('totalFin'), r.totalFin);
     animar($('economia'), Math.max(0, r.economia));
     desenharGrafico(prazo, r.totalCons, r.totalFin);
@@ -227,9 +244,28 @@ function iniciarSite(C) {
     inp.addEventListener('pointerdown', pararTween);
     inp.addEventListener('input', atualizarSimulador);
   });
+  // parcela cheia ou meia parcela: pílula dourada deslizando, como nas outras escolhas
+  function moverPillParcela() {
+    const on = document.querySelector('#tabsParcela .tab.is-on');
+    $('pillParcela').style.width = on.offsetWidth + 'px';
+    $('pillParcela').style.transform = `translateX(${on.offsetLeft}px)`;
+  }
+  $('tabsParcela').hidden = !MEIA;
+  document.querySelectorAll('#tabsParcela .tab').forEach(t => {
+    t.classList.toggle('is-on', (t.dataset.meia === '1') === meia);
+    t.addEventListener('click', () => {
+      meia = t.dataset.meia === '1';
+      document.querySelectorAll('#tabsParcela .tab').forEach(x => x.classList.toggle('is-on', x === t));
+      moverPillParcela();
+      atualizarSimulador();
+    });
+  });
+  window.addEventListener('resize', moverPillParcela);
+
   escolherBem('auto', false);
+  moverPillParcela();
   // a fonte muda a largura das abas depois de carregar
-  document.fonts && document.fonts.ready.then(moverPill);
+  document.fonts && document.fonts.ready.then(() => { moverPill(); moverPillParcela(); });
 
   /* ---------- venda da cota contemplada ---------- */
   // regra da Gold Star: paga um % do crédito; no lance embutido, desconta o embutido antes
@@ -394,11 +430,11 @@ function iniciarSite(C) {
     } else {
       lista.innerHTML = ordenado.map(p => {
         const o = OBJETIVOS[p.tipo], b = BENS[o.bem];
-        const r = calcular(b, p.valor, b.prazo);
+        const r = calcular(b, p.valor, b.ultimo);
         return `<div class="plan-item">
           <div class="plan-item-top">${o.nome} em ${p.ano}<span>${brl(p.valor)}</span></div>
           <input type="range" min="${b.min}" max="${b.max}" step="${b.step}" value="${p.valor}" data-valor="${p.id}">
-          <div class="plan-item-sub"><span>${b.prazo} meses</span><span>parcela <b>${brl(r.parcelaCons)}</b></span></div>
+          <div class="plan-item-sub"><span>${b.prazos[b.ultimo].meses} meses</span><span>parcela <b>${brl(r.parcelaCons)}</b></span></div>
         </div>`;
       }).join('');
       lista.querySelectorAll('[data-valor]').forEach(inp => {
@@ -410,7 +446,7 @@ function iniciarSite(C) {
           const p = plano.find(x => x.id === +inp.dataset.valor);
           const b = BENS[OBJETIVOS[p.tipo].bem];
           item.querySelector('.plan-item-top span').textContent = brl(p.valor);
-          item.querySelector('.plan-item-sub b').textContent = brl(calcular(b, p.valor, b.prazo).parcelaCons);
+          item.querySelector('.plan-item-sub b').textContent = brl(calcular(b, p.valor, b.ultimo).parcelaCons);
           atualizarTotais();
           renderTokens();
         });
@@ -431,7 +467,7 @@ function iniciarSite(C) {
     let patrimonio = 0, mensal = 0, juros = 0;
     plano.forEach(p => {
       const b = BENS[OBJETIVOS[p.tipo].bem];
-      const r = calcular(b, p.valor, b.prazo);
+      const r = calcular(b, p.valor, b.ultimo);
       patrimonio += p.valor;
       mensal += r.parcelaCons;
       juros += Math.max(0, r.economia);
@@ -446,44 +482,111 @@ function iniciarSite(C) {
   renderMapa();
 
   /* ---------- lead + WhatsApp ---------- */
-  let mensagemBase = '';
+  // o visitante informa nome, WhatsApp, estado e cidade; o lead fica salvo para o painel do dono
+  // e a mensagem com a simulação abre pronta no WhatsApp da Gold Star
+  let mensagemBase = '', origemLead = '';
 
-  function abrirLead(titulo, corpo) {
+  function abrirLead(titulo, corpo, origem) {
     mensagemBase = corpo;
+    origemLead = origem;
     $('modalTitle').textContent = titulo;
+    $('leadErro').textContent = '';
     $('modal').hidden = false;
+    if (!cidadesCarregadas) carregarCidades($('leadUF').value);
     atualizarPreview();
     setTimeout(() => $('leadNome').focus(), 50);
   }
+
+  // telefone: só dígitos, mostrado como (64) 99999-9999
+  const digitos = s => String(s).replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '').slice(0, 11);
+  function formatarFone(d) {
+    if (d.length <= 2) return d ? `(${d}` : '';
+    if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+    if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+    return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  }
+  $('leadFone').addEventListener('input', () => {
+    $('leadFone').value = formatarFone(digitos($('leadFone').value));
+    atualizarPreview();
+  });
+
+  // cidades do estado escolhido, direto da base pública do IBGE; se não responder, vira campo de texto
+  const cacheCidades = {};
+  let cidadesCarregadas = false;
+  async function carregarCidades(uf) {
+    cidadesCarregadas = true;
+    const sel = $('leadCidade'), txt = $('leadCidadeTexto');
+    sel.innerHTML = '<option value="">Carregando…</option>';
+    try {
+      if (!cacheCidades[uf]) {
+        const r = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios?orderBy=nome`);
+        if (!r.ok) throw new Error('IBGE ' + r.status);
+        cacheCidades[uf] = (await r.json()).map(m => m.nome);
+      }
+      if ($('leadUF').value !== uf) return; // o visitante já trocou de estado
+      sel.innerHTML = '<option value="">Escolha a cidade</option>' +
+        cacheCidades[uf].map(n => `<option>${esc(n)}</option>`).join('');
+      sel.hidden = false; sel.required = true;
+      txt.hidden = true; txt.required = false;
+    } catch (e) {
+      console.error(e);
+      sel.hidden = true; sel.required = false;
+      txt.hidden = false; txt.required = true;
+    }
+    atualizarPreview();
+  }
+  $('leadUF').addEventListener('change', () => { carregarCidades($('leadUF').value); atualizarPreview(); });
+  const cidadeEscolhida = () => ($('leadCidade').hidden ? $('leadCidadeTexto').value : $('leadCidade').value).trim();
+
   function montarMensagem() {
     const nome = $('leadNome').value.trim() || '...';
-    const cidade = $('leadCidade').value.trim();
-    return `Olá! Vim pelo site da Gold Star.\nNome: ${nome}${cidade ? '\nCidade: ' + cidade : ''}\n\n${mensagemBase}`;
+    const cidade = cidadeEscolhida();
+    return `Olá! Vim pelo site da Gold Star.\nNome: ${nome}${cidade ? `\nCidade: ${cidade}/${$('leadUF').value}` : ''}\n\n${mensagemBase}`;
   }
   function atualizarPreview() { $('leadPreview').textContent = montarMensagem(); }
 
-  $('leadNome').addEventListener('input', atualizarPreview);
-  $('leadCidade').addEventListener('input', atualizarPreview);
+  ['leadNome', 'leadCidadeTexto'].forEach(id => $(id).addEventListener('input', atualizarPreview));
+  $('leadCidade').addEventListener('change', atualizarPreview);
   $('modalX').addEventListener('click', () => { $('modal').hidden = true; });
   $('modal').addEventListener('click', e => { if (e.target.id === 'modal') $('modal').hidden = true; });
   $('leadForm').addEventListener('submit', e => {
     e.preventDefault();
+    const fone = digitos($('leadFone').value);
+    if (fone.length < 10) { $('leadErro').textContent = 'Informe o WhatsApp com DDD.'; $('leadFone').focus(); return; }
+    if (!cidadeEscolhida()) { $('leadErro').textContent = 'Escolha a sua cidade.'; return; }
+    // o WhatsApp abre na hora (navegadores bloqueiam janelas abertas depois de esperar o salvamento)
     window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(montarMensagem())}`, '_blank', 'noopener');
+    Store.salvarLead({
+      criadoEm: new Date().toISOString(),
+      nome: $('leadNome').value.trim().slice(0, 80),
+      telefone: fone,
+      estado: $('leadUF').value,
+      cidade: cidadeEscolhida().slice(0, 80),
+      origem: origemLead,
+      resumo: mensagemBase.slice(0, 1500),
+    }).catch(err => console.error('lead não salvo', err));
     $('modal').hidden = true;
+  });
+
+  $('btnMetodo').addEventListener('click', () => {
+    abrirLead('Construir meu patrimônio',
+      'Conheci o Método API (Aplicar • Poupar • Investir) e quero construir meu patrimônio.', 'Método API');
   });
 
   $('btnSim').addEventListener('click', () => {
     const b = BENS[bemAtual];
     const r = calcular(b, +inValor.value, +inPrazo.value);
     abrirLead('Receber minha simulação',
-      `Fiz uma simulação:\nBem: ${b.nome}\nCarta: ${brl(+inValor.value)}\nPrazo: ${inPrazo.value} meses\nParcela estimada: ${brl(r.parcelaCons)}\n\nQuero falar com um consultor.`);
+      `Fiz uma simulação:\nBem: ${b.nome}\nCarta: ${brl(+inValor.value)}\nPrazo: ${r.prazo} meses\n` +
+      (meia ? `Meia parcela até a contemplação: ${brl(r.meiaParcela)} (cheia ${brl(r.parcelaCons)})` : `Parcela estimada: ${brl(r.parcelaCons)}`) +
+      `\n\nQuero falar com um consultor.`, "Simulador");
   });
 
   $('btnVender').addEventListener('click', () => {
     const r = calcularVenda();
     abrirLead('Vender minha cota',
       `Quero vender minha cota contemplada:\nContemplação: ${forma === 'sorteio' ? 'sorteio' : 'lance embutido (' + pct(r.embutido * 100) + '%)'}\n` +
-      `Crédito: ${brl(r.credito)}\nParcelas pagas: ${r.parcelas} (total ${brl(r.investido)})\nValor estimado da proposta: ${brl(r.recebe)}\n\nQuero uma proposta para a minha cota.`);
+      `Crédito: ${brl(r.credito)}\nParcelas pagas: ${r.parcelas} (total ${brl(r.investido)})\nValor estimado da proposta: ${brl(r.recebe)}\n\nQuero uma proposta para a minha cota.`, "Venda da cota");
   });
 
   $('btnPlano').addEventListener('click', () => {
@@ -491,7 +594,7 @@ function iniciarSite(C) {
     const linhas = [...plano].sort((a, b) => a.ano - b.ano)
       .map(p => `• ${p.ano}: ${OBJETIVOS[p.tipo].nome} (${brl(p.valor)})`).join('\n');
     abrirLead('Revisar meu plano',
-      `Montei meu mapa do patrimônio:\n${linhas}\n\nParcelas somadas: ${brl(mensalPlano)}/mês\nQuero que um consultor revise meu plano.`);
+      `Montei meu mapa do patrimônio:\n${linhas}\n\nParcelas somadas: ${brl(mensalPlano)}/mês\nQuero que um consultor revise meu plano.`, "Mapa do patrimônio");
   });
 
   /* ---------- avaliações ---------- */

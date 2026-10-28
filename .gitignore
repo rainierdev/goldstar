@@ -3,3 +3,10 @@ proposta/
 Vídeos/
 .claude/
 prompt/
+
+# planilhas e arquivos do cliente nunca vão para o GitHub
+*.xlsm
+*.xlsx
+*.xls
+~$*
+494-4940722_caminhao-scania-png-lanternas-caminho.png

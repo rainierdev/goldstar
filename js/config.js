@@ -11,6 +11,15 @@
      no painel aparece para todos os visitantes.
    ========================================================= */
 window.GS_CONFIG = {
+  // Supabase (recomendado): URL do projeto e chave "anon public" (Project Settings › API).
+  // A chave anon é pública por natureza; quem protege os dados são as regras de supabase.sql.
+  supabase: null,
+  /* Exemplo:
+  supabase: {
+    url: "https://abcdefghijkl.supabase.co",
+    chave: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  },
+  */
   firebase: null
   /* Exemplo:
   firebase: {
@@ -37,18 +46,34 @@ window.GS_PADRAO = {
     destaque: 'sem pagar juros',
     subtitulo: 'Carro, casa, caminhonete ou trator: a Gold Star planeja o caminho com você, do primeiro boleto à chave na mão.'
   },
+  // Prazos e taxas da planilha "Proposta direcionada com Investimento" (aba Simulação):
+  // taxa = taxa de administração + fundo de reserva sobre o crédito, por prazo de grupo.
+  // fundo = algum percentual extra além da taxa (a planilha já inclui o fundo na taxa, por isso 0).
+  // O simulador sempre abre na carta mínima e no maior prazo (menor parcela).
   bens: {
-    auto:    { nome: 'Automóvel',      min: 30000,  max: 300000,  passo: 5000,  valor: 90000,  prazoMin: 24, prazoMax: 100, prazo: 72,  adm: 15, fundo: 2, juros: 1.89 },
-    imovel:  { nome: 'Imóvel',         min: 100000, max: 1500000, passo: 10000, valor: 350000, prazoMin: 60, prazoMax: 220, prazo: 180, adm: 18, fundo: 2, juros: 0.99 },
-    pesados: { nome: 'Pesados e agro', min: 80000,  max: 1000000, passo: 10000, valor: 300000, prazoMin: 36, prazoMax: 120, prazo: 100, adm: 14, fundo: 2, juros: 1.60 }
+    auto: {
+      nome: 'Automóvel', min: 30000, max: 300000, passo: 5000, fundo: 0, juros: 1.89,
+      prazos: [{ meses: 36, taxa: 9.5 }, { meses: 72, taxa: 16 }, { meses: 100, taxa: 16 }, { meses: 120, taxa: 16 }, { meses: 140, taxa: 16 }]
+    },
+    imovel: {
+      nome: 'Imóvel', min: 100000, max: 1500000, passo: 10000, fundo: 0, juros: 0.95,
+      prazos: [{ meses: 180, taxa: 23 }, { meses: 200, taxa: 23 }, { meses: 220, taxa: 23 }, { meses: 240, taxa: 24 }]
+    },
+    pesados: {
+      nome: 'Pesados e agro', min: 80000, max: 1000000, passo: 10000, fundo: 0, juros: 1.60,
+      prazos: [{ meses: 36, taxa: 9.5 }, { meses: 72, taxa: 16 }, { meses: 100, taxa: 16 }, { meses: 120, taxa: 16 }, { meses: 140, taxa: 16 }]
+    }
   },
+  // meia parcela: paga metade da parcela até a contemplação (como na planilha)
+  meiaParcela: { ativa: true, padrao: false },
   // compra de cotas contempladas: a Gold Star paga um % do crédito (cheio no sorteio,
   // descontado o lance embutido quando for o caso)
   venda: {
     percentual: 20,                      // % pago sobre o crédito que sobra
     embutido: 30,                        // % do crédito usado no lance embutido
     retornoMes: 'composto',              // 'composto', 'simples' (ROI ÷ meses) ou 'oculto'
-    exemplo: { credito: 420000, parcelas: 13, parcela: 1122.48 }
+    // no mínimo: menor carta, 1 parcela paga, meia parcela da carta de R$ 30 mil em 140 meses (16%)
+    exemplo: { credito: 30000, parcelas: 1, parcela: 124.29 }
   },
   aviso: 'Valores estimados para demonstração, com taxas médias de mercado. A contemplação ocorre por sorteio ou lance e não tem data garantida. Condições finais dependem da administradora.',
   provas: [
@@ -57,7 +82,8 @@ window.GS_PADRAO = {
     { titulo: 'Planejar · Proteger · Multiplicar', texto: 'atendimento do primeiro boleto à chave na mão' }
   ],
   // valor sugerido de cada objetivo quando o visitante o coloca no mapa do patrimônio
-  objetivos: { casa: 350000, terreno: 150000, reforma: 80000, carro: 90000, caminhonete: 250000, moto: 30000, trator: 400000 },
+  // no mínimo de cada tipo de bem; o site nunca passa da faixa de carta
+  objetivos: { casa: 100000, terreno: 100000, reforma: 100000, carro: 30000, caminhonete: 30000, moto: 30000, trator: 80000 },
   avaliacoes: [
     { nome: 'Cliente de Montividiu', bem: 'Automóvel', texto: 'Atendimento atencioso do começo ao fim. Me explicaram o lance com calma e fui contemplado antes do que imaginava.', exemplo: true },
     { nome: 'Cliente de Rio Verde', bem: 'Imóvel', texto: 'Eu achava que consórcio era só sorte. Com o planejamento deles entendi o caminho e hoje estou na casa própria.', exemplo: true },
