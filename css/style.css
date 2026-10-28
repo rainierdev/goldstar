@@ -379,6 +379,18 @@ input[type=range]::-moz-range-thumb {
 .passo-conta span { width: 26px; height: 4px; border-radius: 4px; background: var(--line); transition: background .3s; }
 .passo-conta span.is-on { background: var(--gold); }
 .passo-conta b { margin-left: 6px; font-weight: 700; }
+.check label { cursor: pointer; }
+.link-termos { padding: 0; border: 0; background: none; color: var(--gold-hi); font: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.link-termos:hover { color: var(--gold); }
+.termos {
+  max-height: 190px; overflow-y: auto; padding: 12px 14px; border-radius: 12px;
+  background: var(--bg); border: 1px solid rgba(212,169,58,.35); font-size: .8rem; line-height: 1.5; color: var(--muted);
+  animation: pop .25s ease-out;
+}
+.termos[hidden] { display: none; }
+.termos p { margin: 0 0 8px; }
+.termos p:last-child { margin: 0; }
+.termos b { color: var(--text); }
 .passo2-acoes { display: flex; flex-direction: column; gap: 8px; }
 .erro-lead { margin: 0; color: #f28b6b; font-size: .82rem; font-weight: 700; }
 .erro-lead:empty { display: none; }

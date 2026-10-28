@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20261028a">
+  <link rel="stylesheet" href="css/style.css?v=20261028b">
   <link rel="preload" as="image" href="img/logo-topo-1600.webp" type="image/webp">
   <link rel="preload" as="image" href="img/logo-frases-1600.webp" type="image/webp">
   <script>document.documentElement.classList.add('intro-ativa');</script>
@@ -361,7 +361,19 @@
       </label>
     </div>
     <p class="erro-lead" id="leadErro"></p>
-    <label class="check"><input type="checkbox" id="leadOk" required> Autorizo a Gold Star a guardar meus dados e entrar em contato comigo.</label>
+    <div class="check">
+      <input type="checkbox" id="leadOk" required>
+      <span><label for="leadOk">Li e aceito os</label> <button type="button" class="link-termos" id="btnTermos" aria-expanded="false" aria-controls="termosBox">termos de uso dos meus dados</button>.</span>
+    </div>
+    <!-- termos (LGPD): abre ao clicar no link acima -->
+    <div class="termos" id="termosBox" hidden>
+      <p><b>Quais dados:</b> nome, WhatsApp, estado, cidade e o resumo da simulação que você fez no site.</p>
+      <p><b>Para quê:</b> para a equipe da Gold Star falar com você sobre essa simulação e enviar propostas de consórcio e patrimônio. Nada é enviado automaticamente: o contato é feito por um consultor.</p>
+      <p><b>Quem vê:</b> só a equipe da Gold Star. Seus dados ficam em um banco de dados protegido, não são vendidos e não são repassados a outras empresas.</p>
+      <p><b>Por quanto tempo:</b> enquanto houver atendimento ou até você pedir para apagar.</p>
+      <p><b>Seus direitos (LGPD, Lei 13.709/2018):</b> você pode pedir a qualquer momento para ver, corrigir ou apagar seus dados, ou retirar este aceite, pelo WhatsApp <span data-zap>(64) 9323-2861</span> ou pelo e-mail goldstarconsultoriamtv@gmail.com.</p>
+      <p><b>Importante:</b> a simulação é uma estimativa e não é proposta. A contemplação ocorre por sorteio ou lance, sem data garantida.</p>
+    </div>
     <button class="btn btn-gold btn-block" type="submit">Continuar</button>
     </div>
 
@@ -382,7 +394,7 @@
   <svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2s.2-1.1.1-1.2-.2-.2-.4-.3z"/></svg>
 </a>
 
-<script src="js/config.js?v=20261028a"></script>
+<script src="js/config.js?v=20261028b"></script>
 <script>
   // Supabase (ou Firebase) só é carregado quando o modo online está configurado em js/config.js
   if (window.GS_CONFIG.supabase) {
@@ -393,10 +405,10 @@
                    '<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"><\/script>');
   }
 </script>
-<script src="js/store.js?v=20261028a"></script>
-<script src="js/app.js?v=20261028a"></script>
+<script src="js/store.js?v=20261028b"></script>
+<script src="js/app.js?v=20261028b"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_svg.min.js"></script>
-<script src="js/intro-dados.js?v=20261028a"></script>
-<script src="js/intro.js?v=20261028a"></script>
+<script src="js/intro-dados.js?v=20261028b"></script>
+<script src="js/intro.js?v=20261028b"></script>
 </body>
 </html>

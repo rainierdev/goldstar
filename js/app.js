@@ -486,6 +486,13 @@ function iniciarSite(C) {
   // e a mensagem com a simulação abre pronta no WhatsApp da Gold Star
   let mensagemBase = '', origemLead = '';
 
+  // termos de uso dos dados: abrem e fecham ao clicar no link, dentro da própria janela
+  function mostrarTermos(abrir) {
+    $('termosBox').hidden = !abrir;
+    $('btnTermos').setAttribute('aria-expanded', String(abrir));
+  }
+  $('btnTermos').addEventListener('click', () => mostrarTermos($('termosBox').hidden));
+
   // a janela tem dois passos: 1) dados do lead (salvos ao continuar); 2) quer falar com um consultor agora?
   function irParaPasso(n) {
     $('passo1').hidden = n !== 1;
@@ -499,6 +506,7 @@ function iniciarSite(C) {
     origemLead = origem;
     $('modalTitle').textContent = titulo;
     $('leadErro').textContent = '';
+    mostrarTermos(false);
     irParaPasso(1);
     $('modal').hidden = false;
     if (!cidadesCarregadas) carregarCidades($('leadUF').value);
